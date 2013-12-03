@@ -6,10 +6,6 @@ import math
 import operator
 import time
 
-aEH93 = np.array([[1,0,0],[1,1,1],[0,0,1],[1,1,1],[0,0,0],[0,1,1],[1,1,1],[0,0,0],[1,1,1],[0,0,0]])
-bigtest = np.random.binomial(1,0.9, size=(5000,20))
-node_order = list(range(20))
-
 def vals_of_attributes(D,n):
     output = []
     for i in xrange(n):
@@ -119,7 +115,6 @@ def k2(D,node_order,u=2):
     return parents
 
 
-start = time.time()
-k2(bigtest,node_order)
-end = time.time()
-print end-start
+#aEH93 = np.array([[1,0,0],[1,1,1],[0,0,1],[1,1,1],[0,0,0],[0,1,1],[1,1,1],[0,0,0],[1,1,1],[0,0,0]])
+#bigtest = np.random.binomial(1,0.9, size=(100,40))
+#node_order = list(range(20))

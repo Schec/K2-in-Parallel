@@ -79,6 +79,7 @@ def f(i,pi,attribute_values,df):
 
 def k2(D,node_order,u=2):
     n = D.shape[1]
+    assert len(node_order) == n, "Node order is not correct length.  It should have length %r" % n
     m = D.shape[0]
     attribute_values = vals_of_attributes(D,n)
 

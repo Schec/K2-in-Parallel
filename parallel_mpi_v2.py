@@ -8,6 +8,7 @@ import time
 from mpi4py import MPI
 
 import jodys_serial_v2 as serialv
+import parallel_mpi_v1 as oldparallel
 
 def vals_of_attributes(D,n):
     output = []
@@ -79,7 +80,7 @@ def f(i,pi,attribute_values,df):
         product = product + numerator - denominator + inner_product
     return product
 
-def my_job(i,rank,size):
+def my_job(i):
     flag = False
     if np.floor(i/size) % 2 == 0 and i%size == rank:
         flag = True
@@ -98,7 +99,7 @@ def k2_in_parallel(D,node_order,comm,rank,size,u=2):
     parents = {}
 
     for i in xrange(n):
-        if my_job(i,rank,size) == True:
+        if my_job(i) == True:
             OKToProceed = False
             pi = []
             pred = node_order[0:i]
@@ -123,18 +124,17 @@ def k2_in_parallel(D,node_order,comm,rank,size,u=2):
             parents[node_order[i]] = pi
 
     # sending parents back to node 0 for sorting and printing
+    p = comm.gather(parents, root = 0)
+
     if rank == 0:
-        for i in xrange(1,size):
-            new_parents = comm.recv(source = i)
-            parents.update(new_parents)
+    # gather returns a list - converting to a single dictionary
+        parents = {}
+        for i in range(len(p)):
+            parents.update(p[i])
+
         print parents
         return parents
-
-    else:
-        comm.send(parents,dest = 0)
-
     
-
 
 
 if __name__ == "__main__":
@@ -161,6 +161,14 @@ if __name__ == "__main__":
     end = MPI.Wtime()
     if rank == 0:
         print "Parallel Computing Time: ", end-start
+
+    comm.barrier()
+    start = MPI.Wtime()
+    oldparallel.k2_in_parallel(D,node_order,comm,rank,size,u=5)
+    comm.barrier()
+    end = MPI.Wtime()
+    if rank == 0:
+        print "Old Parallel Computing Time: ", end-start
 
         serial_start = time.time()
         print serialv.k2(D,node_order, u=5)

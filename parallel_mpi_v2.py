@@ -98,8 +98,16 @@ def k2_in_parallel(D,node_order,comm,rank,size,u=2):
     OKToProceed = False
     parents = {}
 
+    selecting_job_time = 0
+    calculation_time = 0
+
     for i in xrange(n):
-        if my_job(i) == True:
+        a = time.time()
+        mjob = my_job(i)
+        b = time.time()
+        selecting_job_time += b-a
+        if mjob == True:
+            a = time.time()
             OKToProceed = False
             pi = []
             pred = node_order[0:i]
@@ -122,15 +130,29 @@ def k2_in_parallel(D,node_order,comm,rank,size,u=2):
                 else:
                     OKToProceed = False
             parents[node_order[i]] = pi
+            b = time.time()
+            calculation_time += b-a
 
     # sending parents back to node 0 for sorting and printing
+    print "node ", rank, " spent ", selecting_job_time, " seconds selecting jobs"
+    print "node ", rank, " spent ", calculation_time, " seconds calculating parent sets"
+
+    comm.barrier()
+    a = MPI.Wtime()
     p = comm.gather(parents, root = 0)
+    comm.barrier()
+    b = MPI.Wtime()
 
     if rank == 0:
+        print "nodes collectively spent ", b-a, " seconds gathering the output"
     # gather returns a list - converting to a single dictionary
         parents = {}
+
+        a = time.time()
         for i in range(len(p)):
             parents.update(p[i])
+        b = time.time()
+        print "node 0 spent ", b-a, " seconds updating the dictionaries"
 
         print parents
         return parents
@@ -145,8 +167,8 @@ if __name__ == "__main__":
     #node = MPI.Get_processor_name()
     
     if rank == 0:
-        D = np.random.binomial(1,0.9,size=(1000,10))
-        node_order = list(range(10))
+        D = np.random.binomial(1,0.9,size=(1000,40))
+        node_order = list(range(40))
     else:
         D = None
         node_order = None

@@ -84,7 +84,7 @@ def k2(D,node_order,u=2):
 
     df = pd.DataFrame(D)
     OKToProceed = False
-    parents = []
+    parents = {}
 
     for i in xrange(n):
         OKToProceed = False
@@ -108,9 +108,9 @@ def k2(D,node_order,u=2):
                     OKToProceed = False
             else:
                 OKToProceed = False
-        parents.append(pi)
+        parents[node_order[i]] = pi
 
-    print parents
+    #print parents
     
     return parents
 

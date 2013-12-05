@@ -8,12 +8,12 @@ import time
 from mpi4py import MPI
 
 import jodys_serial_v2 as serialv
-import parallel_mpi_v1 as oldparallel
+import parallel_mpi_v2 as oldparallel
 
 def vals_of_attributes(D,n):
     output = []
     for i in xrange(n):
-        output.append(list(np.unique(D[:,i])))
+        output.append(list(np.unique(D[:, i])))
     return output
 
 def alpha(df, mask):
@@ -89,10 +89,17 @@ def my_job(i,rank,size):
     return flag
 
 def find_next_job(i,rank,size):
-    i += 1
-    while (my_job(i,rank,size) == False):
-        i += 1
+    if rank == 0:
+        i = i+1
+    else:
+        i = 600
     return i
+
+#def find_next_job(i,rank,size):
+#    i += 1
+#    while (my_job(i,rank,size) == False):
+#        i += 1
+#    return i
 
 def parent_set(i,node_order,attribute_values,df,u=2):
         OKToProceed = False
@@ -116,8 +123,10 @@ def parent_set(i,node_order,attribute_values,df,u=2):
                     OKToProceed = False
             else:
                 OKToProceed = False
+        return pi
 
 def k2_in_parallel(D,node_order,comm,rank,size,u=2):
+    status = MPI.Status()
     n = D.shape[1]
     assert len(node_order) == n, "Node order is not correct length.  It should have length %r" % n
     m = D.shape[0]
@@ -136,43 +145,55 @@ def k2_in_parallel(D,node_order,comm,rank,size,u=2):
     #selecting_job_time += b-a
 
     friends = range(rank + 1, size) + range(rank)
-    friend_in_need = np.zeros(1)
+    friend_in_need = np.array([-1], dtype=np.int32)
 
     while(i < n):
-        if friend_in_need == 0 or i > n - size:
+        req = comm.Irecv(friend_in_need, source = MPI.ANY_SOURCE) # this needs to be non-blocking, asynchronous communication -- no pickle option available
+        time.sleep(1) # resolves problem with checking status too soon after sending request, but takes time
+        req.Test()
+        if friend_in_need == -1 or i > n - size:
             #a = time.time()
             parents[node_order[i]] = parent_set(i, node_order, attribute_values, df, u)
             #b = time.time()
             #calculation_time += b-a
+        elif friend_in_need == -2:
+            i = i - 1
+            friend_in_need = np.array([-1], dtype=np.int32)
+
+            # I know that this friend won't be sending me work later
+            friend = status.Get_source()
+            friends.pop(friend)
+
         else:
-            print "node", rank, "went to else on iteration", i
-            comm.send(i, dest=friend_in_need)
-            friend_in_need = None
-            
+            comm.Send(np.array([i], dtype=np.int32), dest=friend_in_need[0])
+            friend_in_need = np.array([-1], dtype=np.int32)
         i = find_next_job(i, rank, size)
-        comm.Irecv(friend_in_need, source = MPI.ANY_SOURCE) # this needs to be non-blocking, asynchronous communication -- no pickle option available
-        
 
+    # nodes that are done with work don't have any work to send - send None messages instead.  don't wait for other nodes to ask.
+    # would use friends list, but need to send to all others, not just others that still have work
+    temp = list(range(size))
+    temp.remove(rank)
 
-    # nodes that are done with work don't have any work to send - should send None messages instead.  shouldn't wait for other nodes to ask
-    for f in friends:
-        comm.isend(None, dest = f)  #from what I saw online, Ibcast exists  but is still in testing stages
+    for f in temp:
+        comm.Isend(np.array([-2], dtype=np.int32), dest = f)  #from what I saw online, Ibcast exists  but is still in testing stages
 
     # nodes that are done with work ask their neighbors for work units
+    signal = np.empty(shape = (1,1), dtype = np.int32)
+
     while(len(friends) > 0):
         destination = friends[0]
-        mess = np.array([rank])
-        print "node", rank, "sending to", destination
-        comm.send(mess, dest = destination) #sending rank as message eliminates need for Get_source(), # this should be blocking - can't do anything without it
-        print "node", rank, "sent to", destination
-        i = comm.recv(source = destination)
-        print i
-        if i == None:
-            friends.pop(0)
-        else:
-            parents[node_order[i]] = parent_set(i, node_order, attribute_values, df, u)
-            print "node ", rank, 'computing feature', node_order[i]
+        mess = np.array([rank], dtype=np.int32)
+        sreq = comm.Isend(mess, dest = destination) #sending rank as message eliminates need for Get_source()
+        comm.Recv(signal, source = destination) # this should be blocking - can't do anything without it
 
+        if signal == -2:
+            friends.pop(0)
+            print friends
+        else:
+            i = signal[0][0]
+            parents[node_order[i]] = parent_set(i, node_order, attribute_values, df, u)
+
+    print parents
 
     # sending parents back to node 0 for sorting and printing
     #print "node ", rank, " spent ", selecting_job_time, " seconds selecting jobs"
@@ -225,15 +246,15 @@ if __name__ == "__main__":
     if rank == 0:
         print "Parallel Computing Time: ", end-start
 
-#    comm.barrier()
-#    start = MPI.Wtime()
-#    oldparallel.k2_in_parallel(D,node_order,comm,rank,size,u=10)
-#    comm.barrier()
-#    end = MPI.Wtime()
-#    if rank == 0:
-#        print "Old Parallel Computing Time: ", end-start
-#
-#        serial_start = time.time()
-#        print serialv.k2(D,node_order, u=10)
-#        serial_end = time.time()
-#        print "Serial Computing Time: ", serial_end-serial_start
+    comm.barrier()
+    start = MPI.Wtime()
+    oldparallel.k2_in_parallel(D,node_order,comm,rank,size,u=10)
+    comm.barrier()
+    end = MPI.Wtime()
+    if rank == 0:
+        print "Old Parallel Computing Time: ", end-start
+        
+        serial_start = time.time()
+        print serialv.k2(D,node_order, u=10)
+        serial_end = time.time()
+        print "Serial Computing Time: ", serial_end-serial_start

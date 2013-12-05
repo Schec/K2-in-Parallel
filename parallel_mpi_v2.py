@@ -80,7 +80,7 @@ def f(i,pi,attribute_values,df):
         product = product + numerator - denominator + inner_product
     return product
 
-def my_job(i):
+def my_job(i,rank,size):
     flag = False
     if np.floor(i/size) % 2 == 0 and i%size == rank:
         flag = True
@@ -98,20 +98,20 @@ def k2_in_parallel(D,node_order,comm,rank,size,u=2):
     OKToProceed = False
     parents = {}
 
-    selecting_job_time = 0
-    calculation_time = 0
+    #selecting_job_time = 0
+    #calculation_time = 0
 
     for i in xrange(n):
-        a = time.time()
-        mjob = my_job(i)
-        b = time.time()
-        selecting_job_time += b-a
-        if mjob == True:
-            a = time.time()
+        #a = time.time()
+        #mjob = my_job(i,rank,size)
+        #b = time.time()
+        #selecting_job_time += b-a
+        if my_job(i,rank,size) == True:
+            #a = time.time()
             OKToProceed = False
             pi = []
             pred = node_order[0:i]
-            P_old = f(i,pi,attribute_values,df)
+            P_old = f(node_order[i],pi,attribute_values,df)
             if len(pred) > 0:
                 OKToProceed = True
             while (OKToProceed == True and len(pi) < u):
@@ -119,7 +119,7 @@ def k2_in_parallel(D,node_order,comm,rank,size,u=2):
                 if len(iters) > 0:
                     f_to_max = {};
                     for z_hat in iters:
-                        f_to_max[z_hat] = f(i,pi+[z_hat],attribute_values,df)
+                        f_to_max[z_hat] = f(node_order[i],pi+[z_hat],attribute_values,df)
                     z = max(f_to_max.iteritems(), key=operator.itemgetter(1))[0]
                     P_new = f_to_max[z]
                     if P_new > P_old:
@@ -130,29 +130,29 @@ def k2_in_parallel(D,node_order,comm,rank,size,u=2):
                 else:
                     OKToProceed = False
             parents[node_order[i]] = pi
-            b = time.time()
-            calculation_time += b-a
+            #b = time.time()
+            #calculation_time += b-a
 
     # sending parents back to node 0 for sorting and printing
-    print "node ", rank, " spent ", selecting_job_time, " seconds selecting jobs"
-    print "node ", rank, " spent ", calculation_time, " seconds calculating parent sets"
+    #print "node ", rank, " spent ", selecting_job_time, " seconds selecting jobs"
+    #print "node ", rank, " spent ", calculation_time, " seconds calculating parent sets"
 
-    comm.barrier()
-    a = MPI.Wtime()
+    #comm.barrier()
+    #a = MPI.Wtime()
     p = comm.gather(parents, root = 0)
-    comm.barrier()
-    b = MPI.Wtime()
+    #comm.barrier()
+    #b = MPI.Wtime()
 
     if rank == 0:
-        print "nodes collectively spent ", b-a, " seconds gathering the output"
+        #print "nodes collectively spent ", b-a, " seconds gathering the output"
     # gather returns a list - converting to a single dictionary
         parents = {}
 
-        a = time.time()
+        #a = time.time()
         for i in range(len(p)):
             parents.update(p[i])
-        b = time.time()
-        print "node 0 spent ", b-a, " seconds updating the dictionaries"
+        #b = time.time()
+        #print "node 0 spent ", b-a, " seconds updating the dictionaries"
 
         print parents
         return parents
@@ -167,8 +167,8 @@ if __name__ == "__main__":
     #node = MPI.Get_processor_name()
     
     if rank == 0:
-        D = np.random.binomial(1,0.9,size=(1000,40))
-        node_order = list(range(40))
+        D = np.random.binomial(1,0.9,size=(1000,100))
+        node_order = list(range(100))
     else:
         D = None
         node_order = None
@@ -178,7 +178,7 @@ if __name__ == "__main__":
 
     comm.barrier()
     start = MPI.Wtime()
-    k2_in_parallel(D,node_order,comm,rank,size,u=5)
+    k2_in_parallel(D,node_order,comm,rank,size,u=10)
     comm.barrier()
     end = MPI.Wtime()
     if rank == 0:
@@ -186,13 +186,13 @@ if __name__ == "__main__":
 
     comm.barrier()
     start = MPI.Wtime()
-    oldparallel.k2_in_parallel(D,node_order,comm,rank,size,u=5)
+    oldparallel.k2_in_parallel(D,node_order,comm,rank,size,u=10)
     comm.barrier()
     end = MPI.Wtime()
     if rank == 0:
         print "Old Parallel Computing Time: ", end-start
 
         serial_start = time.time()
-        print serialv.k2(D,node_order, u=5)
+        print serialv.k2(D,node_order, u=10)
         serial_end = time.time()
         print "Serial Computing Time: ", serial_end-serial_start

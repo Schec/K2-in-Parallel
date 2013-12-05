@@ -91,7 +91,7 @@ def k2(D,node_order,u=2):
         OKToProceed = False
         pi = []
         pred = node_order[0:i]
-        P_old = f(i,pi,attribute_values,df)
+        P_old = f(node_order[i],pi,attribute_values,df)
         if len(pred) > 0:
             OKToProceed = True
         while (OKToProceed == True and len(pi) < u):
@@ -99,7 +99,7 @@ def k2(D,node_order,u=2):
             if len(iters) > 0:
                 f_to_max = {};
                 for z_hat in iters:
-                    f_to_max[z_hat] = f(i,pi+[z_hat],attribute_values,df)
+                    f_to_max[z_hat] = f(node_order[i],pi+[z_hat],attribute_values,df)
                 z = max(f_to_max.iteritems(), key=operator.itemgetter(1))[0]
                 P_new = f_to_max[z]
                 if P_new > P_old:

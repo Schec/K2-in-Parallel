@@ -13,19 +13,19 @@ import pycuda.gpuarray as gpu
 import pycuda.compiler as nvcc
 
 f_source='''
-__global__ void my_f(int** d_combinations, float* d_res) {
+__global__ void my_f(int* d_combinations, float* d_res) {
   
-  int ind_i = blockIdx.x * blockDim.x + threadIdx.x;
+  int indi = blockIdx.x * blockDim.x + threadIdx.x;
 
+  if(indi<$H){
   float alpha_0 = 0;
   float alpha_1 = 0;
   float S3_0 = 0;
   float S3_1 = 0;
-  int counter = 0;
-  if(ind_i<$H){
+  int counter = 0;  
     #for $a in range($nrow)
       #for $b in range($ncol)
-        if ($DF_rearr[$a][$b] == d_combinations[ind_i][$b]){
+        if ($DF[$a][$b] == d_combinations[indi*$nf+$b]){
 	  counter += 1;
         }
       #end for
@@ -38,17 +38,19 @@ __global__ void my_f(int** d_combinations, float* d_res) {
           alpha_1 +=  1;
 	  S3_1 += log2(alpha_1);
         }
-      } 
+      }
       counter = 0;
     #end for
 
   int N = alpha_0 + alpha_1;
   int r = 2;
   float S1 = 0;
-  for (float n = r; n <= (N+r-1);n++){
-    S1 += log2(n);
+  if (N>0){
+    for (float n = r; n <= (N+r-1);n++){
+      S1 += log2(n);
+    }
   }
-  d_res[ind_i] = S3_1 +S3_0-S1;
+  d_res[indi] = S3_1 +S3_0-S1;
   }
 }'''
 

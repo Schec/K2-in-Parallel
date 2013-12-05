@@ -114,23 +114,22 @@ def k2_in_parallel(D,node_order,comm,rank,size,u=2):
   
     # slave nodes
     else:
-        calculation_time = 0
-        message_time = 0
+#        calculation_time = 0
+#        message_time = 0
         
         while (True):
-            message_start = time.time()
+#            message_start = time.time()
             i = comm.recv(source = 0)
-            message_end = time.time()
-            message_time += message_end - message_start
+#            message_end = time.time()
+#            message_time += message_end - message_start
 
             if i == None:
-                calc_end = time.time()
-                print "node ", rank, " spent ", calculation_time, " seconds calculating parent sets"
-                print "node ", rank, " spent ", message_time, " seconds sending and receiving messages"
+#                print "node ", rank, " spent ", calculation_time, " seconds calculating parent sets"
+#                print "node ", rank, " spent ", message_time, " seconds sending and receiving messages"
                 return
 
             else:
-                calc_start = time.time()
+#                calc_start = time.time()
                 OKToProceed = False
                 pi = []
                 pred = node_order[0:i]
@@ -157,12 +156,12 @@ def k2_in_parallel(D,node_order,comm,rank,size,u=2):
                         OKToProceed = False
 
                 message = {node_order[i]: pi}
-                calc_end = time.time()
-                calculation_time += calc_end - calc_start
-                message_start = time.time()
+#                calc_end = time.time()
+#                calculation_time += calc_end - calc_start
+#                message_start = time.time()
                 comm.send(message, dest = 0)
-                message_end = time.time()
-                message_time += message_end - message_start
+#                message_end = time.time()
+#                message_time += message_end - message_start
     
 
 

@@ -11,21 +11,21 @@ import pycuda.autoinit
 import pycuda.driver as cu
 import pycuda.gpuarray as gpu
 import pycuda.compiler as nvcc
-#d_combinations[ind_i*$W+$b]
-f_source='''
-__global__ void my_f(int** d_combinations, float* d_res) {
-  
-  int ind_i = blockIdx.x * blockDim.x + threadIdx.x;
 
+f_source='''
+__global__ void my_f(int* d_combinations, float* d_res) {
+  
+  int indi = blockIdx.x * blockDim.x + threadIdx.x;
+
+  if(indi<$H){
   float alpha_0 = 0;
   float alpha_1 = 0;
   float S3_0 = 0;
   float S3_1 = 0;
   int counter = 0;  
-  if(ind_i<$H){
     #for $a in range($nrow)
       #for $b in range($ncol)
-        if ($DF[$a][$b] == d_combinations[ind_i][$b]){
+        if ($DF[$a][$b] == d_combinations[indi*$nf+$b]){
 	  counter += 1;
         }
       #end for
@@ -50,7 +50,7 @@ __global__ void my_f(int** d_combinations, float* d_res) {
       S1 += log2(n);
     }
   }
-  d_res[ind_i] = S3_1 +S3_0-S1;
+  d_res[indi] = S3_1 +S3_0-S1;
   }
 }'''
 
@@ -60,33 +60,34 @@ def nvcc_compile(string, function):
   return module.get_function(function)
 
 if __name__ == '__main__':
-	D = np.array([[1,0,0],[1,1,1],[0,0,1],[1,1,1],[0,0,0],[0,1,1],[1,1,1],[0,0,0],[1,1,1],[0,0,0]],dtype=np.uint8)
-	n_features = 3
-	node_order = range(n_features)
+	D = np.array([[1,0,0],[1,1,1],[0,0,1],[1,1,1],[0,0,0],[0,1,1],[1,1,1],[0,0,0],[1,1,1],[0,0,0]],dtype=np.int)
+	D = pd.DataFrame(D)
+	n_features = D.shape[1]
   
   	#-----------------CUDA
 	#Cheetah Variables
 	template = Template(f_source)
-	template.DF = np.array(D[:,:2], dtype = np.uint8)
+	template.DF = np.array(D[:,:2], dtype = np.int32)
 	template.nrow = D[:,:2].shape[0]
 	template.ncol = D[:,:2].shape[1]
-	template.ll = np.array(D[:,2], dtype=np.uint8)
+	template.ll = np.array(D[:,2], dtype=np.int32)
 
-	combinations = np.array([[0,0],[0,1],[1,0],[1,1]], dtype=np.uint8)		
-	template.H = combinations.shape[0]
-	template.W = combinations.shape[1]
+	combinations = np.array([0,0,0,1,1,0,1,1], dtype=np.int32)
+	height = combinations.shape[0]		
+	template.H = height
+	template.nf = (n_features-1)
 	f_kernel = nvcc_compile(template, "my_f")
 
 	##Threads
-	height = combinations.shape[0]
-	blocksize = (height,1,1)
+	
+	block_x = np.int(height/(n_features-1))
+	blocksize = (block_x,1,1)
 	gridsize = (1,1)
 
 	##Kernel
-	h_res = np.zeros(height,dtype=np.float32)
+	h_res = np.zeros(height/(n_features-1),dtype=np.float32)
 	
-	d_combinations = gpu.to_gpu(combinations)
-	print d_combinations.get()	
+	d_combinations = gpu.to_gpu(combinations)	
 	d_res = gpu.to_gpu(h_res)
 	f_kernel(d_combinations, d_res,block=blocksize,grid=gridsize)		      
 	h_res = d_res.get()

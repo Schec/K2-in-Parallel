@@ -97,7 +97,7 @@ def k2_in_parallel(D,node_order,comm,rank,size,u=2):
         for i in range(1,size):
             comm.send( i - 1, dest = i)
 
-        for i in xrange(size,n):
+        for i in xrange(size-1,n):
             new_parents = comm.recv(source = MPI.ANY_SOURCE, status = status)
             parents.update(new_parents)
             destin = status.Get_source()

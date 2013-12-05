@@ -5,6 +5,9 @@ import pandas as pd
 import math
 import operator
 import time
+from mpi4py import MPI
+
+import jodys_serial_v2 as serialv
 
 def vals_of_attributes(D,n):
     output = []
@@ -76,8 +79,15 @@ def f(i,pi,attribute_values,df):
         product = product + numerator - denominator + inner_product
     return product
 
+def my_job(i,rank,size):
+    flag = False
+    if np.floor(i/size) % 2 == 0 and i%size == rank:
+        flag = True
+    if np.floor(i/size) % 2 == 1 and size - 1 - i%size  == rank:
+        flag = True
+    return flag
 
-def k2(D,node_order,u=2):
+def k2_in_parallel(D,node_order,comm,rank,size,u=2):
     n = D.shape[1]
     assert len(node_order) == n, "Node order is not correct length.  It should have length %r" % n
     m = D.shape[0]
@@ -88,34 +98,71 @@ def k2(D,node_order,u=2):
     parents = {}
 
     for i in xrange(n):
-        OKToProceed = False
-        pi = []
-        pred = node_order[0:i]
-        P_old = f(node_order[i],pi,attribute_values,df)
-        if len(pred) > 0:
-            OKToProceed = True
-        while (OKToProceed == True and len(pi) < u):
-            iters = [item for item in pred if item not in pi]
-            if len(iters) > 0:
-                f_to_max = {};
-                for z_hat in iters:
-                    f_to_max[z_hat] = f(node_order[i],pi+[z_hat],attribute_values,df)
-                z = max(f_to_max.iteritems(), key=operator.itemgetter(1))[0]
-                P_new = f_to_max[z]
-                if P_new > P_old:
-                    P_old = P_new
-                    pi = pi+[z]
+        if my_job(i,rank,size) == True:
+            OKToProceed = False
+            pi = []
+            pred = node_order[0:i]
+            P_old = f(node_order[i],pi,attribute_values,df)
+            if len(pred) > 0:
+                OKToProceed = True
+            while (OKToProceed == True and len(pi) < u):
+                iters = [item for item in pred if item not in pi]
+                if len(iters) > 0:
+                    f_to_max = {};
+                    for z_hat in iters:
+                        f_to_max[z_hat] = f(node_order[i],pi+[z_hat],attribute_values,df)
+                    z = max(f_to_max.iteritems(), key=operator.itemgetter(1))[0]
+                    P_new = f_to_max[z]
+                    if P_new > P_old:
+                        P_old = P_new
+                        pi = pi+[z]
+                    else:
+                        OKToProceed = False
                 else:
                     OKToProceed = False
-            else:
-                OKToProceed = False
-        parents[node_order[i]] = pi
+            parents[node_order[i]] = pi
 
-    #print parents
+    # sending parents back to node 0 for sorting and printing
+    if rank == 0:
+        for i in xrange(1,size):
+            new_parents = comm.recv(source = i)
+            parents.update(new_parents)
+        print parents
+        return parents
+
+    else:
+        comm.send(parents,dest = 0)
+
     
-    return parents
 
 
-#aEH93 = np.array([[1,0,0],[1,1,1],[0,0,1],[1,1,1],[0,0,0],[0,1,1],[1,1,1],[0,0,0],[1,1,1],[0,0,0]])
-#bigtest = np.random.binomial(1,0.9, size=(100,40))
-#node_order = list(range(20))
+
+if __name__ == "__main__":
+    comm = MPI.COMM_WORLD
+    rank = comm.Get_rank()
+    size = comm.Get_size()
+    #device = pycuda.autoinit.device.pci_bus_id()
+    #node = MPI.Get_processor_name()
+    
+    if rank == 0:
+        D = np.random.binomial(1,0.9,size=(1000,10))
+        node_order = list(range(10))
+    else:
+        D = None
+        node_order = None
+
+    D = comm.bcast(D, root=0)
+    node_order = comm.bcast(node_order, root = 0)
+
+    comm.barrier()
+    start = MPI.Wtime()
+    k2_in_parallel(D,node_order,comm,rank,size,u=5)
+    comm.barrier()
+    end = MPI.Wtime()
+    if rank == 0:
+        print "Parallel Computing Time: ", end-start
+
+        serial_start = time.time()
+        print serialv.k2(D,node_order, u=5)
+        serial_end = time.time()
+        print "Serial Computing Time: ", serial_end-serial_start

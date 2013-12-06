@@ -8,7 +8,9 @@ import time
 from mpi4py import MPI
 
 import jodys_serial_v2 as serialv
-import parallel_mpi_v2 as oldparallel
+import parallel_mpi_v3 as v3
+import parallel_mpi_v2 as v2
+import parallel_mpi_v1 as v1
 
 def vals_of_attributes(D,n):
     output = []
@@ -149,7 +151,7 @@ def k2_in_parallel(D,node_order,comm,rank,size,u=2):
 
     while(i < n):
         req = comm.Irecv(friend_in_need, source = MPI.ANY_SOURCE) # this needs to be non-blocking, asynchronous communication -- no pickle option available
-        time.sleep(1) # resolves problem with checking status too soon after sending request, but takes time
+        time.sleep(0.05) # resolves problem with checking status too soon after sending request, but takes time
         req.Test()
         if friend_in_need == -1 or i > n - size:
             #a = time.time()
@@ -188,7 +190,6 @@ def k2_in_parallel(D,node_order,comm,rank,size,u=2):
 
         if signal == -2:
             friends.pop(0)
-            print friends
         else:
             i = signal[0][0]
             parents[node_order[i]] = parent_set(i, node_order, attribute_values, df, u)
@@ -244,17 +245,33 @@ if __name__ == "__main__":
     comm.barrier()
     end = MPI.Wtime()
     if rank == 0:
-        print "Parallel Computing Time: ", end-start
+        print "V4 Parallel Computing Time: ", end-start
 
     comm.barrier()
     start = MPI.Wtime()
-    oldparallel.k2_in_parallel(D,node_order,comm,rank,size,u=10)
+    v3.k2_in_parallel(D,node_order,comm,rank,size,u=10)
     comm.barrier()
     end = MPI.Wtime()
     if rank == 0:
-        print "Old Parallel Computing Time: ", end-start
-        
-        serial_start = time.time()
-        print serialv.k2(D,node_order, u=10)
-        serial_end = time.time()
-        print "Serial Computing Time: ", serial_end-serial_start
+        print "V3 Parallel Computing Time: ", end-start
+
+    comm.barrier()
+    start = MPI.Wtime()
+    v2.k2_in_parallel(D,node_order,comm,rank,size,u=10)
+    comm.barrier()
+    end = MPI.Wtime()
+    if rank == 0:
+        print "V2 Parallel Computing Time: ", end-start
+
+    comm.barrier()
+    start = MPI.Wtime()
+    v1.k2_in_parallel(D,node_order,comm,rank,size,u=10)
+    comm.barrier()
+    end = MPI.Wtime()
+    if rank == 0:
+        print "V1 Parallel Computing Time: ", end-start
+
+        #serial_start = time.time()
+        #print serialv.k2(D,node_order, u=10)
+        #serial_end = time.time()
+        #print "Serial Computing Time: ", serial_end-serial_start

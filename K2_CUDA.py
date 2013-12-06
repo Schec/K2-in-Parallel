@@ -5,7 +5,6 @@ import pandas as pd
 import math
 import operator
 import time
-
 from Cheetah.Template import Template
 import pycuda.autoinit
 import pycuda.driver as cu
@@ -25,18 +24,18 @@ __global__ void my_f(int* d_combinations, float* d_res) {
   int counter = 0;  
     #for $a in range($nrow)
       #for $b in range($ncol)
-        if ($DF[$a][$b] == d_combinations[indi*$nf+$b]){
+        if ($DF[$a][$b] == d_combinations[indi*$ncol+$b]){
 	  counter += 1;
         }
       #end for
       if (counter==$ncol){
         if($ll[$a]==0){
           alpha_0 +=  1;
-	  S3_0 += log2(alpha_0);
+	  S3_0 += log(alpha_0);
         }
         if($ll[$a]==1){
           alpha_1 +=  1;
-	  S3_1 += log2(alpha_1);
+	  S3_1 += log(alpha_1);
         }
       }
       counter = 0;
@@ -47,13 +46,17 @@ __global__ void my_f(int* d_combinations, float* d_res) {
   float S1 = 0;
   if (N>0){
     for (float n = r; n <= (N+r-1);n++){
-      S1 += log2(n);
+      S1 += log(n);
     }
   }
   d_res[indi] = S3_1 +S3_0-S1;
   }
 }'''
 
+def nvcc_compile(string, function):
+  #print string;
+  module = nvcc.SourceModule(string, options=['--ptxas-options=-v'], cache_dir=False)
+  return module.get_function(function)
 
 def vals_of_attributes(D,n):
     output = []
@@ -125,8 +128,41 @@ def f(i,pi,attribute_values,df):
         product = product + numerator - denominator + inner_product
     return product
 
+def f_second(i,pi,attribute_values,df):
 
-def K2(D,node_order,u=2):
+    #-----------------CUDA
+    #Cheetah Variables
+    template = Template(f_source)
+    template.DF = np.array(df[pi], dtype = np.int32)
+    template.nrow = df[pi].shape[0]
+    nfeat = df[pi].shape[1]
+    template.ncol = nfeat
+    template.ll = np.array(df[i], dtype=np.int32)
+
+    phi_i_ = [attribute_values[item] for item in pi]
+    combinations = np.array(list(itertools.product(*phi_i_)), dtype=np.int32)		
+    combinations = np.array(combinations.ravel().tolist(), dtype=np.int32)
+    height = combinations.shape[0]
+    template.H = height
+    f_kernel = nvcc_compile(template, "my_f")
+
+    ##Threads
+    block_x = np.int(height/nfeat)
+    blocksize = (block_x,1,1)
+    gridsize = (1,1)
+
+    ##Kernel
+    h_res = np.zeros(height/nfeat,dtype=np.float32)
+    d_combinations = gpu.to_gpu(combinations)
+    d_res = gpu.to_gpu(h_res)
+    f_kernel(d_combinations,d_res,block=blocksize,grid=gridsize)
+                
+    ress = d_res.get()
+    ress = list(ress)
+ 
+    return sum(ress)
+
+def k2(D,node_order,u=2):
     n = D.shape[1]
     m = D.shape[0]
     attribute_values = vals_of_attributes(D,n)
@@ -145,38 +181,10 @@ def K2(D,node_order,u=2):
         while (OKToProceed == True and len(pi) < u):
             iters = [item for item in pred if item not in pi]
             if len(iters) > 0:
-
-		#-----------------CUDA
-		#Cheetah Variables
-		template = Template(f_source)
-  		template.DF_rearr = np.array(df[pi])
-		template.nrow = df[pi].shape[0]
-		template.ncol = df[pi].shape[1]
-		template.ll = np.array(df[i], dtype=np.uint8)
-		
-		#template.combinations = np.array(iters, dtype=np.uint8)
-		phi_i_ = [attribute_values[item] for item in pi]
-		combinations = np.array(list(itertools.product(*phi_i_)), dtype=np.uint8)		
-		template.H = combinations.shape[0]
-		#template.W = combinations.shape[1]
-		f_kernel = nvcc_compile(template, "my_f")
-                
-		##Threads
-		height = combinations.shape[0]
-		blocksize = (height,1,1)
-		gridsize = (1,1)
-		
-		##Kernel
-                d_combinations = gpu.to_gpu(combinations)
-		h_res = np.zeros(height,dtype=np.float64)
-		d_res = gpu.to_gpu(h_res)
-		f_kernel(d_combinations,d_res,block=blocksize,grid=gridsize)
-		                
-		f_to_max = d_res.get()
-		
-		#for z_hat in iters:
-                    #f_to_max[z_hat] = f(i,pi+[z_hat],attribute_values,df)
-		
+                f_to_max = {};
+                for z_hat in iters:
+                    f_to_max[z_hat] = f_second(i,pi+[z_hat],attribute_values,df)
+		    print 'i = %i, val = %f'% (i,f_to_max[z_hat])
                 z = max(f_to_max.iteritems(), key=operator.itemgetter(1))[0]
                 P_new = f_to_max[z]
                 if P_new > P_old:
@@ -188,31 +196,10 @@ def K2(D,node_order,u=2):
                 OKToProceed = False
         parents.append(pi)
 
-    #print parents
+    print parents
     
     return parents
-
-def nvcc_compile(string, function):
-  print string;
-  module = nvcc.SourceModule(string, options=['--ptxas-options=-v'], cache_dir=False)
-  return module.get_function(function)
-
-
-#aEH93 = np.array([[1,0,0],[1,1,1],[0,0,1],[1,1,1],[0,0,0],[0,1,1],[1,1,1],[0,0,0],[1,1,1],[0,0,0]])
-#bigtest = np.random.binomial(1,0.9, size=(100,40))
-#node_order = list(range(20))
-
 if __name__ == '__main__':
-  n_features = 8
-  D = np.random.binomial(1,0.9, size=(100,n_features))
-  node_order = range(n_features)
-  # Compiled CUDA kernel
-  #f_kernel = nvcc.SourceModule(f_source).get_function("my_f")
-  #template = Template(f_source)
-  #f_kernel = nvcc_compile(template, "my_f")
-  K2(D,node_order,u=n_features-1)
-  
-
-
-
+  aEH93 = np.array([[1,0,0],[1,1,1],[0,0,1],[1,1,1],[0,0,0],[0,1,1],[1,1,1],[0,0,0],[1,1,1],[0,0,0]])
+  res = k2(aEH93,[0,1],2)
 

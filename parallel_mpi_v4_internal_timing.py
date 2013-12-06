@@ -133,7 +133,7 @@ def k2_in_parallel(D,node_order,comm,rank,size,u=2):
     tracking_time = 0
 
     a = time.time()
-    i = find_next_job(0,rank,size)
+    i = rank
     b = time.time()
     selecting_job_time += b - a
 
@@ -141,9 +141,10 @@ def k2_in_parallel(D,node_order,comm,rank,size,u=2):
     friend_in_need = np.array([-1], dtype=np.int32)
 
     while(i < n):
+        print "node ", rank, "on iteration ", i
         a = time.time()
         req = comm.Irecv(friend_in_need, source = MPI.ANY_SOURCE) # this needs to be non-blocking, asynchronous communication -- no pickle option available
-        time.sleep(0.5) # resolves problem with checking status too soon after sending request, but takes time
+        time.sleep(0.2) # resolves problem with checking status too soon after sending request, but takes time
         req.Test()
         b = time.time()
         communication_time += b - a
@@ -153,6 +154,7 @@ def k2_in_parallel(D,node_order,comm,rank,size,u=2):
             b = time.time()
             calculation_time += b - a
         elif friend_in_need == -2:
+            print "node", rank, "went to elif"
             i = i - 1
             friend_in_need = np.array([-1], dtype=np.int32)
 
@@ -178,26 +180,34 @@ def k2_in_parallel(D,node_order,comm,rank,size,u=2):
 
     # nodes that are done with work don't have any work to send - send None messages instead.  don't wait for other nodes to ask.
     # would use friends list, but need to send to all others, not just others that still have work
+
     temp = list(range(size))
     temp.remove(rank)
 
     a = time.time()
     for f in temp:
+        print "node", rank, " sending done signal to  ", f
         comm.Isend(np.array([-2], dtype=np.int32), dest = f)  #from what I saw online, Ibcast exists  but is still in testing stages
     b = time.time()
     communication_time += b - a
 
+    
     # nodes that are done with work ask their neighbors for work units
     signal = np.empty(shape = (1,1), dtype = np.int32)
 
     while(len(friends) > 0):
+        print "node", rank, " has friends ", friends
         destination = friends[0]
         mess = np.array([rank], dtype=np.int32)
         a = time.time()
+        print "node", rank, " work request to  ", destination
         sreq = comm.Isend(mess, dest = destination) #sending rank as message eliminates need for Get_source()
         comm.Recv(signal, source = destination) # this should be blocking - can't do anything without it
+        sreq.Cancel()
         b = time.time()
         communication_time += b - a
+
+        print "node", rank, " received  ", signal, " from ", destination
 
         if signal == -2:
             friends.pop(0)
@@ -247,8 +257,8 @@ if __name__ == "__main__":
     #node = MPI.Get_processor_name()
     
     if rank == 0:
-        D = np.random.binomial(1,0.9,size=(1000,40))
-        node_order = list(range(40))
+        D = np.random.binomial(1,0.9,size=(1000,10))
+        node_order = list(range(10))
     else:
         D = None
         node_order = None

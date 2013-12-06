@@ -1,0 +1,15 @@
+[schechter@cuda-1-6 project]$ mpiexec -n 2 python parallel_mpi_v3.py 
+Parallel Computing Time:  230.683016062
+Old Parallel Computing Time:  134.742799997
+[schechter@cuda-1-6 project]$ mpiexec -n 4 python parallel_mpi_v3.py 
+Parallel Computing Time:  62.618183136
+Old Parallel Computing Time:  58.4808900356
+[schechter@cuda-1-6 project]$ mpiexec -n 8 python parallel_mpi_v3.py 
+Parallel Computing Time:  39.2903680801
+Old Parallel Computing Time:  38.7905709743
+[schechter@cuda-1-6 project]$ mpiexec -n 16 python parallel_mpi_v3.py 
+Parallel Computing Time:  41.9195249081
+Old Parallel Computing Time:  37.8056781292
+[schechter@cuda-1-6 project]$ mpiexec -n 32 python parallel_mpi_v3.py 
+Parallel Computing Time:  53.1549458504
+Old Parallel Computing Time:  56.9483749866

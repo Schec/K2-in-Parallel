@@ -109,7 +109,7 @@ def k2_in_parallel(D,node_order,comm,rank,size,u=2):
             destin = status.Get_source()
             comm.send(None, dest = destin)
 
-        print parents
+        #print parents
         return parents
   
     # slave nodes
@@ -173,8 +173,8 @@ if __name__ == "__main__":
     #node = MPI.Get_processor_name()
     
     if rank == 0:
-        D = np.random.binomial(1,0.9,size=(1000,40))
-        node_order = list(range(40))
+        D = np.random.binomial(1,0.9,size=(1000,100))
+        node_order = list(range(100))
     else:
         D = None
         node_order = None
@@ -197,8 +197,3 @@ if __name__ == "__main__":
     end = MPI.Wtime()
     if rank == 0:
         print "Old Parallel Computing Time: ", end-start
-
-        serial_start = time.time()
-        print serialv.k2(D,node_order, u=5)
-        serial_end = time.time()
-        print "Serial Computing Time: ", serial_end-serial_start

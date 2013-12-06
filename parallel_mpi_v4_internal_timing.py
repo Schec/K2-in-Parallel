@@ -87,17 +87,10 @@ def my_job(i,rank,size):
     return flag
 
 def find_next_job(i,rank,size):
-    if rank == 0:
-        i = i+1
-    else:
-        i = 600
+    i += 1
+    while (my_job(i,rank,size) == False):
+        i += 1
     return i
-
-#def find_next_job(i,rank,size):
-#    i += 1
-#    while (my_job(i,rank,size) == False):
-#        i += 1
-#    return i
 
 def parent_set(i,node_order,attribute_values,df,u=2):
         OKToProceed = False

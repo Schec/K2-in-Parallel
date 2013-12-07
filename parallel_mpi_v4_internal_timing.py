@@ -117,7 +117,6 @@ def parent_set(i,node_order,attribute_values,df,u=2):
         return pi
 
 def k2_in_parallel(D,node_order,comm,rank,size,u=2):
-    status = MPI.Status()
     n = D.shape[1]
     assert len(node_order) == n, "Node order is not correct length.  It should have length %r" % n
     m = D.shape[0]
@@ -146,12 +145,13 @@ def k2_in_parallel(D,node_order,comm,rank,size,u=2):
     status = MPI.Status()
 
     while(i < n):
-        print "node ", rank, "on iteration ", i
+        print "doing stuff on node ", rank
         a = time.time()
         req = comm.Irecv(friend_in_need, source = MPI.ANY_SOURCE) # this needs to be non-blocking, asynchronous communication -- no pickle option available
         if req.Test(status = status) == False:
             req.Cancel()
         b = time.time()
+        print rank, " receiving ", b-a
         communication_time += b - a
 
         if friend_in_need == -2: 
@@ -175,6 +175,7 @@ def k2_in_parallel(D,node_order,comm,rank,size,u=2):
             comm.Send(np.array([i], dtype=np.int32), dest=friend_in_need[0])
             friend_in_need = np.array([-1], dtype=np.int32)
             b = time.time()
+            print rank, " sending ", b-a
             communication_time += b - a
 
         a = time.time()
@@ -191,8 +192,9 @@ def k2_in_parallel(D,node_order,comm,rank,size,u=2):
 
     a = time.time()
     for f in temp:
-        comm.Send(np.array([-2], dtype=np.int32), dest = f)
+        comm.Isend(np.array([-2], dtype=np.int32), dest = f)
     b = time.time()
+    print rank, " telling ", b-a
     communication_time += b - a
 
     
@@ -200,6 +202,7 @@ def k2_in_parallel(D,node_order,comm,rank,size,u=2):
     signal = np.empty(shape = (1,1), dtype = np.int32)
 
     while(len(friends) > 0):
+        print "doing stuff on node ", rank
         destination = friends[0]
         mess = np.array([rank], dtype=np.int32)
         a = time.time()
@@ -207,11 +210,12 @@ def k2_in_parallel(D,node_order,comm,rank,size,u=2):
         comm.Recv(signal, source = destination) # this should be blocking - can't do anything without it
         sreq.Cancel()
         b = time.time()
+        print rank, " checking ", b-a
         communication_time += b - a
 
         if signal == -2:
             friends.pop(0)
-            
+
         else:
             i = signal[0][0]
             a = time.time()
@@ -257,9 +261,12 @@ if __name__ == "__main__":
     #device = pycuda.autoinit.device.pci_bus_id()
     #node = MPI.Get_processor_name()
     
+    m = 100
+    n = 100
     if rank == 0:
-        D = np.random.binomial(1,0.9,size=(1000,10))
-        node_order = list(range(10))
+        np.random.seed(42)
+        D = np.random.binomial(1,0.9,size=(m,n))
+        node_order = list(range(n))
     else:
         D = None
         node_order = None
@@ -269,7 +276,7 @@ if __name__ == "__main__":
 
     comm.barrier()
     start = MPI.Wtime()
-    k2_in_parallel(D,node_order,comm,rank,size,u=10)
+    k2_in_parallel(D,node_order,comm,rank,size,u=n-1)
     comm.barrier()
     end = MPI.Wtime()
     if rank == 0:

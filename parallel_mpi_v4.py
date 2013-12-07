@@ -8,6 +8,7 @@ import time
 from mpi4py import MPI
 
 import jodys_serial_v2 as serialv
+import parallel_mpi_v4 as v4
 import parallel_mpi_v3 as v3
 import parallel_mpi_v2 as v2
 import parallel_mpi_v1 as v1
@@ -21,7 +22,7 @@ def vals_of_attributes(D,n):
 def alpha(df, mask):
     _df = df
     for combo in mask:
-        _df = _df[_df[combo[0]] == combo[1]]  # I know there must be a way to speed this up - but i couldn't find it
+        _df = _df[_df[combo[0]] == combo[1]] 
     return len(_df)
 
 def f(i,pi,attribute_values,df):
@@ -82,19 +83,12 @@ def f(i,pi,attribute_values,df):
         product = product + numerator - denominator + inner_product
     return product
 
-def my_job(i,rank,size):
-    flag = False
-    if np.floor(i/size) % 2 == 0 and i%size == rank:
-        flag = True
-    if np.floor(i/size) % 2 == 1 and size - 1 - i%size  == rank:
-        flag = True
-    return flag
-
-def find_next_job(i,rank,size):
-    i += 1
-    while (my_job(i,rank,size) == False):
-        i += 1
-    return i
+def find_all_jobs(i,rank,size):
+    p1 = i[np.floor(i/size) % 2 == 0]
+    p1 =  p1[p1%size == rank]
+    p2 = i[np.floor(i/size) % 2 == 1]
+    p2 =  p2[size - 1 - p2%size == rank]
+    return sorted(list(p1) + list(p2), reverse = True)
 
 def parent_set(i,node_order,attribute_values,df,u=2):
         OKToProceed = False
@@ -121,74 +115,91 @@ def parent_set(i,node_order,attribute_values,df,u=2):
         return pi
 
 def k2_in_parallel(D,node_order,comm,rank,size,u=2):
+    status = MPI.Status()
     n = D.shape[1]
     assert len(node_order) == n, "Node order is not correct length.  It should have length %r" % n
     m = D.shape[0]
     attribute_values = vals_of_attributes(D,n)
 
+    # we'll need this constant later for message sizes
+    lsig = int(np.floor(n/(2*size)))
+
     df = pd.DataFrame(D)
     OKToProceed = False
     parents = {}
 
-    i = rank
+    #selecting_job_time = 0
+    #calculation_time = 0
+
+    all_i = find_all_jobs(np.arange(n),rank,size)
 
     friends = range(rank + 1, size) + range(rank)
     friend_in_need = np.array([-1], dtype=np.int32)
 
-    status = MPI.Status()
+    # this is the signal we'll send to friends who ask for work to let them know that we don't have any for them
+    done = np.zeros(lsig, dtype = np.int32)
+    done[0] = -2
 
-    while(i < n):
+    lall = len(all_i)
+
+    while lall > 0:
+
         req = comm.Irecv(friend_in_need, source = MPI.ANY_SOURCE) # this needs to be non-blocking, asynchronous communication -- no pickle option available
         if req.Test(status = status) == False:
             req.Cancel()
-      
-        # in this case we update the  friend group
-        if friend_in_need == -2:
-            friend = status.Get_source()
-            i = i - 1
-            friend_in_need = np.array([-1], dtype=np.int32)       
-            friends.remove(friend)
-
 
         # in this case we do work
-        elif friend_in_need == -1 or i > n - size:
-            parents[node_order[i]] = parent_set(i, node_order, attribute_values, df, u)
+        if not friend_in_need == -1:
+            friend = friend_in_need
 
-        # in this case we send work
-        else:
-            comm.Send(np.array([i], dtype=np.int32), dest=friend_in_need[0])
-            friend_in_need = np.array([-1], dtype=np.int32)
-        i = find_next_job(i, rank, size)
+            # this friend asked for work, so don't send work to this friend later
+            friends.remove(friend)
 
-    # nodes that are done with work don't have any work to send - send -2 messages instead.  don't wait for other nodes to ask.
-    # would use friends list, but need to send to all others, not just others that still have work
-    temp = list(range(size))
-    temp.remove(rank)
+            # send done message if we don't have a lot of work left
+            if lall < 4:
+                comm.Send(done, dest = friend)
 
-    for f in temp:
-        comm.Send(np.array([-2], dtype=np.int32), dest = f)
+            # send half of the remaining work if there is enough left,
+            else:
+                # build the message
+                a = list(secondchunk[np.ceil(1/2*lall):lall])
+                # pad the message with zeros (for consistent-sized messages)
+                b = list(np.zeros(lsig-len(a)))
+                # send the message
+                comm.Send(np.array(a+b, dtype=np.int32), dest=friend)
+                # update my own chunk of work
+                secondchunk = secondchunk[0:np.ceil(1/2*lall)]
+
+                i = secondchunk.pop(0) 
+                parents[node_order[i]] = parent_set(i, node_order, attribute_values, df, u)
+
+            friend_in_need =  np.array([-1], dtype=np.int32)
+
+
+        # whether you sent to a friend or not choose the next element to calculate
+        i = secondchunk.pop(0) 
+        parents[node_order[i]] = parent_set(i, node_order, attribute_values, df, u)
+
+        # update lall to see if we should go again
+        lall = len(secondchunk)
 
     # nodes that are done with work ask their neighbors for work units
-    signal = np.empty(shape = (1,1), dtype = np.int32)
+    # you could receive up to np.floor(n/(2*size)) work units
+    signal = np.zeros(shape = lsig, dtype = np.int32)
 
     while(len(friends) > 0):
-        destination = friends[0]
+        destination = friends.pop(0)
         mess = np.array([rank], dtype=np.int32)
         sreq = comm.Isend(mess, dest = destination) #sending rank as message eliminates need for Get_source()
         comm.Recv(signal, source = destination) # this should be blocking - can't do anything without it
-
-        if signal == -2:
-            friends.pop(0)
-
-        else:
-            i = signal[0][0]
+        
+        # get any work from message that exists
+        all_i = signal[signal > 0]
+        for i in all_i:
             parents[node_order[i]] = parent_set(i, node_order, attribute_values, df, u)
-
-    print parents
 
     # sending parents back to node 0 for sorting and printing
     p = comm.gather(parents, root = 0)
-
 
     if rank == 0:
     # gather returns a list - converting to a single dictionary
@@ -210,7 +221,7 @@ if __name__ == "__main__":
     #node = MPI.Get_processor_name()
     
     if rank == 0:
-        D = np.random.binomial(1,0.9,size=(1000,40))
+        D = np.random.binomial(1,0.9,size=(100,40))
         node_order = list(range(40))
     else:
         D = None
@@ -226,32 +237,3 @@ if __name__ == "__main__":
     end = MPI.Wtime()
     if rank == 0:
         print "V4 Parallel Computing Time: ", end-start
-
-    comm.barrier()
-    start = MPI.Wtime()
-    v3.k2_in_parallel(D,node_order,comm,rank,size,u=10)
-    comm.barrier()
-    end = MPI.Wtime()
-    if rank == 0:
-        print "V3 Parallel Computing Time: ", end-start
-
-    comm.barrier()
-    start = MPI.Wtime()
-    v2.k2_in_parallel(D,node_order,comm,rank,size,u=10)
-    comm.barrier()
-    end = MPI.Wtime()
-    if rank == 0:
-        print "V2 Parallel Computing Time: ", end-start
-
-    comm.barrier()
-    start = MPI.Wtime()
-    v1.k2_in_parallel(D,node_order,comm,rank,size,u=10)
-    comm.barrier()
-    end = MPI.Wtime()
-    if rank == 0:
-        print "V1 Parallel Computing Time: ", end-start
-
-        #serial_start = time.time()
-        #print serialv.k2(D,node_order, u=10)
-        #serial_end = time.time()
-        #print "Serial Computing Time: ", serial_end-serial_start

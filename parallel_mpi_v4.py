@@ -121,7 +121,6 @@ def parent_set(i,node_order,attribute_values,df,u=2):
         return pi
 
 def k2_in_parallel(D,node_order,comm,rank,size,u=2):
-    status = MPI.Status()
     n = D.shape[1]
     assert len(node_order) == n, "Node order is not correct length.  It should have length %r" % n
     m = D.shape[0]
@@ -131,37 +130,43 @@ def k2_in_parallel(D,node_order,comm,rank,size,u=2):
     OKToProceed = False
     parents = {}
 
-    i = find_next_job(0,rank,size)
+    i = rank
 
     friends = range(rank + 1, size) + range(rank)
     friend_in_need = np.array([-1], dtype=np.int32)
 
+    status = MPI.Status()
+
     while(i < n):
         req = comm.Irecv(friend_in_need, source = MPI.ANY_SOURCE) # this needs to be non-blocking, asynchronous communication -- no pickle option available
-        time.sleep(0.05) # resolves problem with checking status too soon after sending request, but takes time
-        req.Test()
-        if friend_in_need == -1 or i > n - size:
-            parents[node_order[i]] = parent_set(i, node_order, attribute_values, df, u)
-        elif friend_in_need == -2:
-            i = i - 1
-            friend_in_need = np.array([-1], dtype=np.int32)
-
-            # I know that this friend won't be sending me work later
+        if req.Test(status = status) == False:
+            req.Cancel()
+      
+        # in this case we update the  friend group
+        if friend_in_need == -2:
             friend = status.Get_source()
-            friends.pop(friend)
+            i = i - 1
+            friend_in_need = np.array([-1], dtype=np.int32)       
+            friends.remove(friend)
 
+
+        # in this case we do work
+        elif friend_in_need == -1 or i > n - size:
+            parents[node_order[i]] = parent_set(i, node_order, attribute_values, df, u)
+
+        # in this case we send work
         else:
             comm.Send(np.array([i], dtype=np.int32), dest=friend_in_need[0])
             friend_in_need = np.array([-1], dtype=np.int32)
         i = find_next_job(i, rank, size)
 
-    # nodes that are done with work don't have any work to send - send None messages instead.  don't wait for other nodes to ask.
+    # nodes that are done with work don't have any work to send - send -2 messages instead.  don't wait for other nodes to ask.
     # would use friends list, but need to send to all others, not just others that still have work
     temp = list(range(size))
     temp.remove(rank)
 
     for f in temp:
-        comm.Isend(np.array([-2], dtype=np.int32), dest = f)  #from what I saw online, Ibcast exists  but is still in testing stages
+        comm.Send(np.array([-2], dtype=np.int32), dest = f)
 
     # nodes that are done with work ask their neighbors for work units
     signal = np.empty(shape = (1,1), dtype = np.int32)
@@ -174,6 +179,7 @@ def k2_in_parallel(D,node_order,comm,rank,size,u=2):
 
         if signal == -2:
             friends.pop(0)
+
         else:
             i = signal[0][0]
             parents[node_order[i]] = parent_set(i, node_order, attribute_values, df, u)

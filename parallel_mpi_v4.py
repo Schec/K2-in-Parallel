@@ -162,26 +162,27 @@ def k2_in_parallel(D,node_order,comm,rank,size,u=2):
             # send half of the remaining work if there is enough left,
             else:
                 # build the message
-                a = list(secondchunk[np.ceil(1/2*lall):lall])
+                a = list(all_i[int(np.ceil(1/2*lall)):lall])
                 # pad the message with zeros (for consistent-sized messages)
                 b = list(np.zeros(lsig-len(a)))
                 # send the message
                 comm.Send(np.array(a+b, dtype=np.int32), dest=friend)
                 # update my own chunk of work
-                secondchunk = secondchunk[0:np.ceil(1/2*lall)]
+                all_i = all_i[0:int(np.ceil(1/2*lall))]
 
-                i = secondchunk.pop(0) 
+                i = all_i.pop(0) 
                 parents[node_order[i]] = parent_set(i, node_order, attribute_values, df, u)
 
             friend_in_need =  np.array([-1], dtype=np.int32)
 
 
         # whether you sent to a friend or not choose the next element to calculate
-        i = secondchunk.pop(0) 
+        i = all_i.pop(0) 
+        print "node", rank, " calculating feature ", node_order[i] 
         parents[node_order[i]] = parent_set(i, node_order, attribute_values, df, u)
 
         # update lall to see if we should go again
-        lall = len(secondchunk)
+        lall = len(all_i)
 
     # nodes that are done with work ask their neighbors for work units
     # you could receive up to np.floor(n/(2*size)) work units
@@ -196,6 +197,7 @@ def k2_in_parallel(D,node_order,comm,rank,size,u=2):
         # get any work from message that exists
         all_i = signal[signal > 0]
         for i in all_i:
+            print "node", rank, " calculating feature ", node_order[i] 
             parents[node_order[i]] = parent_set(i, node_order, attribute_values, df, u)
 
     # sending parents back to node 0 for sorting and printing

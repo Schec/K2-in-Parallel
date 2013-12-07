@@ -106,233 +106,233 @@ V4 Parallel Computing Time:  340.592051029
 
 
 
-node  4  spent  4.50611114502e-05  receiving and testing receive
-node  3  spent  5.50746917725e-05  receiving and testing receive
-node  0  spent  4.41074371338e-05  receiving and testing receive
-node  5  spent  4.29153442383e-05  receiving and testing receive
-node  0  spent  1.8835067749e-05  receiving and testing receive
+node  4  spent  4.50611114502e-05  seconds receiving and testing receive
+node  3  spent  5.50746917725e-05  seconds receiving and testing receive
+node  0  spent  4.41074371338e-05  seconds receiving and testing receive
+node  5  spent  4.29153442383e-05  seconds receiving and testing receive
+node  0  spent  1.8835067749e-05  seconds receiving and testing receive
 doing stuff on node  7
 doing stuff on node  6
-node  7  spent  5.60283660889e-05  receiving and testing receive
-node  6  spent  5.19752502441e-05  receiving and testing receive
+node  7  spent  5.60283660889e-05  seconds receiving and testing receive
+node  6  spent  5.19752502441e-05  seconds receiving and testing receive
 doing stuff on node  1
 doing stuff on node  2
-node  1  spent  5.81741333008e-05  receiving and testing receive
-node  2  spent  5.41210174561e-05  receiving and testing receive
+node  1  spent  5.81741333008e-05  seconds receiving and testing receive
+node  2  spent  5.41210174561e-05  seconds receiving and testing receive
 doing stuff on node  3
-node  3  spent  1.90734863281e-05  receiving and testing receive
+node  3  spent  1.90734863281e-05  seconds receiving and testing receive
 doing stuff on node  1
-node  1  spent  1.90734863281e-05  receiving and testing receive
+node  1  spent  1.90734863281e-05  seconds receiving and testing receive
 doing stuff on node  4
-node  4  spent  1.50203704834e-05  receiving and testing receive
+node  4  spent  1.50203704834e-05  seconds receiving and testing receive
 doing stuff on node  2
-node  2  spent  2.00271606445e-05  receiving and testing receive
+node  2  spent  2.00271606445e-05  seconds receiving and testing receive
 doing stuff on node  5
-node  5  spent  1.28746032715e-05  receiving and testing receive
+node  5  spent  1.28746032715e-05  seconds receiving and testing receive
 doing stuff on node  6
-node  6  spent  2.09808349609e-05  receiving and testing receive
+node  6  spent  2.09808349609e-05  seconds receiving and testing receive
 doing stuff on node  7
-node  7  spent  2.00271606445e-05  receiving and testing receive
+node  7  spent  2.00271606445e-05  seconds receiving and testing receive
 doing stuff on node  4
-node  4  spent  1.38282775879e-05  receiving and testing receive
+node  4  spent  1.38282775879e-05  seconds receiving and testing receive
 doing stuff on node  3
-node  3  spent  1.78813934326e-05  receiving and testing receive
+node  3  spent  1.78813934326e-05  seconds receiving and testing receive
 doing stuff on node  5
-node  5  spent  1.31130218506e-05  receiving and testing receive
+node  5  spent  1.31130218506e-05  seconds receiving and testing receive
 doing stuff on node  7
 doing stuff on node  6
-node  7  spent  1.90734863281e-05  receiving and testing receive
-node  6  spent  1.78813934326e-05  receiving and testing receive
+node  7  spent  1.90734863281e-05  seconds receiving and testing receive
+node  6  spent  1.78813934326e-05  seconds receiving and testing receive
 doing stuff on node  2
-node  2  spent  2.00271606445e-05  receiving and testing receive
+node  2  spent  2.00271606445e-05  seconds receiving and testing receive
 doing stuff on node  1
-node  1  spent  2.121925354e-05  receiving and testing receive
+node  1  spent  2.121925354e-05  seconds receiving and testing receive
 doing stuff on node  0
-node  0  spent  1.59740447998e-05  receiving and testing receive
+node  0  spent  1.59740447998e-05  seconds receiving and testing receive
 doing stuff on node  0
-node  0  spent  1.4066696167e-05  receiving and testing receive
+node  0  spent  1.4066696167e-05 seconds receiving and testing receive
 doing stuff on node  6
-node  6  spent  1.8835067749e-05  receiving and testing receive
+node  6  spent  1.8835067749e-05  seconds receiving and testing receive
 doing stuff on node  3
-node  3  spent  1.90734863281e-05  receiving and testing receive
+node  3  spent  1.90734863281e-05  seconds receiving and testing receive
 doing stuff on node  5
-node  5  spent  1.4066696167e-05  receiving and testing receive
+node  5  spent  1.4066696167e-05  seconds receiving and testing receive
 doing stuff on node  1
-node  1  spent  2.09808349609e-05  receiving and testing receive
+node  1  spent  2.09808349609e-05  seconds receiving and testing receive
 doing stuff on node  3
-node  3  spent  3.2901763916e-05  receiving and testing receive
+node  3  spent  3.2901763916e-05  seconds receiving and testing receive
 doing stuff on node  1
-node  1  spent  3.69548797607e-05  receiving and testing receive
+node  1  spent  3.69548797607e-05  seconds receiving and testing receive
 doing stuff on node  4
-node  4  spent  1.59740447998e-05  receiving and testing receive
+node  4  spent  1.59740447998e-05  seconds receiving and testing receive
 doing stuff on node  1
-node  1  spent  2.09808349609e-05  receiving and testing receive
+node  1  spent  2.09808349609e-05  seconds receiving and testing receive
 doing stuff on node  2
-node  2  spent  2.59876251221e-05  receiving and testing receive
+node  2  spent  2.59876251221e-05  seconds receiving and testing receive
 doing stuff on node  3
-node  3  spent  2.21729278564e-05  receiving and testing receive
+node  3  spent  2.21729278564e-05  seconds receiving and testing receive
 doing stuff on node  0
-node  0  spent  3.19480895996e-05  receiving and testing receive
+node  0  spent  3.19480895996e-05  seconds receiving and testing receive
 doing stuff on node  2
-node  2  spent  3.60012054443e-05  receiving and testing receive
+node  2  spent  3.60012054443e-05  seconds receiving and testing receive
 doing stuff on node  4
-node  4  spent  3.09944152832e-05  receiving and testing receive
+node  4  spent  3.09944152832e-05  seconds receiving and testing receive
 doing stuff on node  4
-node  4  spent  1.78813934326e-05  receiving and testing receive
+node  4  spent  1.78813934326e-05  seconds receiving and testing receive
 doing stuff on node  5
-node  5  spent  3.00407409668e-05  receiving and testing receive
+node  5  spent  3.00407409668e-05  seconds receiving and testing receive
 doing stuff on node  0
-node  0  spent  1.50203704834e-05  receiving and testing receive
+node  0  spent  1.50203704834e-05  seconds receiving and testing receive
 doing stuff on node  5
-node  5  spent  1.71661376953e-05  receiving and testing receive
+node  5  spent  1.71661376953e-05  seconds receiving and testing receive
 doing stuff on node  6
-node  6  spent  4.10079956055e-05  receiving and testing receive
+node  6  spent  4.10079956055e-05  seconds receiving and testing receive
 doing stuff on node  5
-node  5  spent  1.81198120117e-05  receiving and testing receive
+node  5  spent  1.81198120117e-05  seconds receiving and testing receive
 doing stuff on node  6
-node  6  spent  2.50339508057e-05  receiving and testing receive
+node  6  spent  2.50339508057e-05  seconds receiving and testing receive
 doing stuff on node  0
-node  0  spent  2.00271606445e-05  receiving and testing receive
+node  0  spent  2.00271606445e-05  seconds receiving and testing receive
 doing stuff on node  7
-node  7  spent  2.90870666504e-05  receiving and testing receive
+node  7  spent  2.90870666504e-05  seconds receiving and testing receive
 doing stuff on node  1
-node  1  spent  2.90870666504e-05  receiving and testing receive
+node  1  spent  2.90870666504e-05  seconds receiving and testing receive
 doing stuff on node  3
-node  3  spent  2.47955322266e-05  receiving and testing receive
+node  3  spent  2.47955322266e-05  seconds receiving and testing receive
 doing stuff on node  7
-node  7  spent  4.10079956055e-05  receiving and testing receive
+node  7  spent  4.10079956055e-05  seconds receiving and testing receive
 doing stuff on node  7
-node  7  spent  2.59876251221e-05  receiving and testing receive
+node  7  spent  2.59876251221e-05  seconds receiving and testing receive
 doing stuff on node  2
-node  2  spent  2.78949737549e-05  receiving and testing receive
+node  2  spent  2.78949737549e-05  seconds receiving and testing receive
 doing stuff on node  1
-node  1  spent  2.98023223877e-05  receiving and testing receive
+node  1  spent  2.98023223877e-05  seconds receiving and testing receive
 doing stuff on node  2
-node  2  spent  3.09944152832e-05  receiving and testing receive
+node  2  spent  3.09944152832e-05  seconds receiving and testing receive
 doing stuff on node  4
-node  4  spent  2.90870666504e-05  receiving and testing receive
+node  4  spent  2.90870666504e-05  seconds receiving and testing receive
 doing stuff on node  2
-node  2  spent  2.8133392334e-05  receiving and testing receive
+node  2  spent  2.8133392334e-05  seconds receiving and testing receive
 doing stuff on node  1
-node  1  spent  2.21729278564e-05  receiving and testing receive
+node  1  spent  2.21729278564e-05  seconds receiving and testing receive
 doing stuff on node  0
-node  0  spent  2.40802764893e-05  receiving and testing receive
+node  0  spent  2.40802764893e-05  seconds receiving and testing receive
 doing stuff on node  5
-node  5  spent  2.09808349609e-05  receiving and testing receive
+node  5  spent  2.09808349609e-05  seconds receiving and testing receive
 doing stuff on node  0
-node  0  spent  2.00271606445e-05  receiving and testing receive
+node  0  spent  2.00271606445e-05  seconds receiving and testing receive
 doing stuff on node  0
-node  0  spent  2.59876251221e-05  receiving and testing receive
+node  0  spent  2.59876251221e-05  seconds receiving and testing receive
 doing stuff on node  5
-node  5  spent  2.50339508057e-05  receiving and testing receive
+node  5  spent  2.50339508057e-05  seconds receiving and testing receive
 doing stuff on node  6
-node  6  spent  2.78949737549e-05  receiving and testing receive
+node  6  spent  2.78949737549e-05  seconds receiving and testing receive
 doing stuff on node  1
-node  1  spent  2.31266021729e-05  receiving and testing receive
+node  1  spent  2.31266021729e-05  seconds receiving and testing receive
 doing stuff on node  4
-node  4  spent  3.09944152832e-05  receiving and testing receive
+node  4  spent  3.09944152832e-05  seconds receiving and testing receive
 doing stuff on node  4
-node  4  spent  3.00407409668e-05  receiving and testing receive
+node  4  spent  3.00407409668e-05  seconds receiving and testing receive
 doing stuff on node  2
-node  2  spent  3.00407409668e-05  receiving and testing receive
+node  2  spent  3.00407409668e-05  seconds receiving and testing receive
 doing stuff on node  5
-node  5  spent  2.31266021729e-05  receiving and testing receive
+node  5  spent  2.31266021729e-05  seconds receiving and testing receive
 doing stuff on node  0
-node  0  spent  2.21729278564e-05  receiving and testing receive
+node  0  spent  2.21729278564e-05  seconds receiving and testing receive
 doing stuff on node  0
-node  0  spent  2.19345092773e-05  receiving and testing receive
+node  0  spent  2.19345092773e-05  seconds receiving and testing receive
 doing stuff on node  5
-node  5  spent  2.31266021729e-05  receiving and testing receive
+node  5  spent  2.31266021729e-05  seconds receiving and testing receive
 doing stuff on node  0
-node  0  spent  2.19345092773e-05  receiving and testing receive
+node  0  spent  2.19345092773e-05  seconds receiving and testing receive
 doing stuff on node  2
-node  2  spent  3.00407409668e-05  receiving and testing receive
+node  2  spent  3.00407409668e-05  seconds receiving and testing receive
 doing stuff on node  1
-node  1  spent  2.50339508057e-05  receiving and testing receive
+node  1  spent  2.50339508057e-05  seconds receiving and testing receive
 doing stuff on node  7
-node  7  spent  3.00407409668e-05  receiving and testing receive
+node  7  spent  3.00407409668e-05  seconds receiving and testing receive
 doing stuff on node  7
-node  7  spent  2.19345092773e-05  receiving and testing receive
+node  7  spent  2.19345092773e-05  seconds receiving and testing receive
 doing stuff on node  1
-node  1  spent  2.40802764893e-05  receiving and testing receive
+node  1  spent  2.40802764893e-05  seconds receiving and testing receive
 doing stuff on node  7
-node  7  spent  3.19480895996e-05  receiving and testing receive
+node  7  spent  3.19480895996e-05  seconds receiving and testing receive
 doing stuff on node  4
-node  4  spent  3.09944152832e-05  receiving and testing receive
+node  4  spent  3.09944152832e-05  seconds receiving and testing receive
 doing stuff on node  1
-node  1  spent  2.31266021729e-05  receiving and testing receive
+node  1  spent  2.31266021729e-05  seconds receiving and testing receive
 doing stuff on node  4
-node  4  spent  2.88486480713e-05  receiving and testing receive
-node  1  spent  0.000158071517944  seconds sending done signals
+node  4  spent  2.88486480713e-05  seconds receiving and testing receive
+node  1  spent  0.000158071517944  seconds telling other nodes done
 doing stuff on node  1
 doing stuff on node  7
-node  7  spent  4.88758087158e-05  receiving and testing receive
+node  7  spent  4.88758087158e-05  seconds receiving and testing receive
 doing stuff on node  7
-node  7  spent  1.50203704834e-05  receiving and testing receive
+node  7  spent  1.50203704834e-05  seconds receiving and testing receive
 doing stuff on node  4
-node  4  spent  3.40938568115e-05  receiving and testing receive
+node  4  spent  3.40938568115e-05  seconds receiving and testing receive
 doing stuff on node  4
-node  4  spent  1.50203704834e-05  receiving and testing receive
+node  4  spent  1.50203704834e-05  seconds receiving and testing receive
 doing stuff on node  2
-node  2  spent  4.98294830322e-05  receiving and testing receive
+node  2  spent  4.98294830322e-05  seconds receiving and testing receive
 doing stuff on node  2
-node  2  spent  1.90734863281e-05  receiving and testing receive
+node  2  spent  1.90734863281e-05  seconds receiving and testing receive
 node  1  spent  4.63506412506  seconds checking for work
 node  2  spent  6.38961791992e-05  seconds sending work
 doing stuff on node  2
-node  2  spent  1.59740447998e-05  receiving and testing receive
+node  2  spent  1.59740447998e-05  seconds receiving and testing receive
 doing stuff on node  7
-node  7  spent  3.19480895996e-05  receiving and testing receive
-node  0  spent  0.000159978866577  seconds sending done signals
+node  7  spent  3.19480895996e-05  seconds receiving and testing receive
+node  0  spent  0.000159978866577  seconds telling other nodes done
 doing stuff on node  0
 node  0  spent  2.90870666504e-05  seconds checking for work
 doing stuff on node  0
 doing stuff on node  1
 doing stuff on node  2
-node  2  spent  5.19752502441e-05  receiving and testing receive
+node  2  spent  5.19752502441e-05  seconds receiving and testing receive
 doing stuff on node  2
-node  2  spent  1.62124633789e-05  receiving and testing receive
+node  2  spent  1.62124633789e-05  seconds receiving and testing receive
 doing stuff on node  6
-node  6  spent  5.10215759277e-05  receiving and testing receive
+node  6  spent  5.10215759277e-05  seconds receiving and testing receive
 doing stuff on node  6
-node  6  spent  2.19345092773e-05  receiving and testing receive
+node  6  spent  2.19345092773e-05  seconds receiving and testing receive
 doing stuff on node  6
-node  6  spent  1.50203704834e-05  receiving and testing receive
+node  6  spent  1.50203704834e-05  seconds receiving and testing receive
 doing stuff on node  6
-node  6  spent  2.90870666504e-05  receiving and testing receive
+node  6  spent  2.90870666504e-05  seconds receiving and testing receive
 doing stuff on node  3
-node  3  spent  4.72068786621e-05  receiving and testing receive
+node  3  spent  4.72068786621e-05  seconds receiving and testing receive
 doing stuff on node  3
-node  3  spent  2.19345092773e-05  receiving and testing receive
+node  3  spent  2.19345092773e-05  seconds receiving and testing receive
 doing stuff on node  3
-node  3  spent  1.4066696167e-05  receiving and testing receive
+node  3  spent  1.4066696167e-05  seconds receiving and testing receive
 doing stuff on node  5
-node  5  spent  3.50475311279e-05  receiving and testing receive
+node  5  spent  3.50475311279e-05  seconds receiving and testing receive
 doing stuff on node  5
-node  5  spent  2.19345092773e-05  receiving and testing receive
+node  5  spent  2.19345092773e-05  seconds receiving and testing receive
 doing stuff on node  5
-node  5  spent  1.09672546387e-05  receiving and testing receive
+node  5  spent  1.09672546387e-05  seconds receiving and testing receive
 doing stuff on node  6
-node  6  spent  3.00407409668e-05  receiving and testing receive
-node  5  spent  0.000164031982422  seconds sending done signals
+node  6  spent  3.00407409668e-05  seconds receiving and testing receive
+node  5  spent  0.000164031982422  seconds telling other nodes done
 doing stuff on node  5
 doing stuff on node  3
-node  3  spent  4.19616699219e-05  receiving and testing receive
+node  3  spent  4.19616699219e-05  seconds receiving and testing receive
 doing stuff on node  3
-node  3  spent  1.4066696167e-05  receiving and testing receive
+node  3  spent  1.4066696167e-05  seconds receiving and testing receive
 doing stuff on node  6
-node  6  spent  4.19616699219e-05  receiving and testing receive
+node  6  spent  4.19616699219e-05  seconds receiving and testing receive
 doing stuff on node  6
-node  6  spent  1.69277191162e-05  receiving and testing receive
+node  6  spent  1.69277191162e-05  seconds receiving and testing receive
 node  5  spent  4.20755004883  seconds checking for work
 node  6  spent  7.48634338379e-05  seconds sending work
 doing stuff on node  6
-node  6  spent  1.50203704834e-05  receiving and testing receive
+node  6  spent  1.50203704834e-05  seconds receiving and testing receive
 doing stuff on node  3
-node  3  spent  2.59876251221e-05  receiving and testing receive
-node  6  spent  0.000252962112427  seconds sending done signals
+node  3  spent  2.59876251221e-05  seconds receiving and testing receive
+node  6  spent  0.000252962112427  seconds telling other nodes done
 doing stuff on node  6
-node  4  spent  0.000273942947388  seconds sending done signals
+node  4  spent  0.000273942947388  seconds telling other nodes done
 doing stuff on node  4
 node  4  spent  3.50475311279e-05  seconds checking for work
 doing stuff on node  4
@@ -342,43 +342,43 @@ node  0  spent  132.815816164  seconds checking for work
 doing stuff on node  0
 node  1  spent  131.205414057  seconds checking for work
 doing stuff on node  1
-node  2  spent  0.000211954116821  seconds sending done signals
+node  2  spent  0.000211954116821  seconds telling other nodes done
 doing stuff on node  2
 doing stuff on node  3
-node  3  spent  4.10079956055e-05  receiving and testing receive
+node  3  spent  4.10079956055e-05  seconds receiving and testing receive
 doing stuff on node  3
-node  3  spent  1.90734863281e-05  receiving and testing receive
+node  3  spent  1.90734863281e-05  seconds receiving and testing receive
 doing stuff on node  3
-node  3  spent  1.71661376953e-05  receiving and testing receive
+node  3  spent  1.71661376953e-05  seconds receiving and testing receive
 doing stuff on node  3
-node  3  spent  1.78813934326e-05  receiving and testing receive
+node  3  spent  1.78813934326e-05  seconds receiving and testing receive
 node  0  spent  2.69871592522  seconds checking for work
 node  3  spent  4.57763671875e-05  seconds sending work
 doing stuff on node  3
-node  3  spent  1.81198120117e-05  receiving and testing receive
+node  3  spent  1.81198120117e-05  seconds receiving and testing receive
 node  1  spent  2.69893193245  seconds checking for work
 node  3  spent  3.88622283936e-05  seconds sending work
 doing stuff on node  3
-node  3  spent  1.59740447998e-05  receiving and testing receive
+node  3  spent  1.59740447998e-05  seconds receiving and testing receive
 doing stuff on node  5
 node  5  spent  4.88758087158e-05  seconds checking for work
 doing stuff on node  5
 doing stuff on node  1
 doing stuff on node  0
 doing stuff on node  7
-node  7  spent  4.00543212891e-05  receiving and testing receive
+node  7  spent  4.00543212891e-05  seconds receiving and testing receive
 doing stuff on node  7
-node  7  spent  1.69277191162e-05  receiving and testing receive
+node  7  spent  1.69277191162e-05  seconds receiving and testing receive
 doing stuff on node  7
-node  7  spent  2.00271606445e-05  receiving and testing receive
+node  7  spent  2.00271606445e-05  seconds receiving and testing receive
 doing stuff on node  7
-node  7  spent  1.21593475342e-05  receiving and testing receive
+node  7  spent  1.21593475342e-05  seconds receiving and testing receive
 node  7  spent  5.88893890381e-05  seconds sending work
 node  6  spent  102.768754005  seconds checking for work
 node  4  spent  101.30369997  seconds checking for work
 node  5  spent  45.2579171658  seconds checking for work
 doing stuff on node  4
-node  7  spent  0.000217914581299  seconds sending done signals
+node  7  spent  0.000217914581299  seconds telling other nodes done
 doing stuff on node  7
 doing stuff on node  5
 node  4  spent  3.00407409668e-05  seconds checking for work
@@ -407,7 +407,7 @@ node  0  spent  1.59740447998e-05  seconds checking for work
 node  4  spent  3.40938568115e-05  seconds tracking nodes to help decide with whom to communicate
 doing stuff on node  1
 doing stuff on node  5
-node  3  spent  0.000213861465454  seconds sending done signals
+node  3  spent  0.000213861465454  seconds telling other nodes done
 doing stuff on node  3
 node  2  spent  3.2901763916e-05  seconds checking for work
 doing stuff on node  2

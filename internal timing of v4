@@ -1,0 +1,30 @@
+u = 99
+n = 100
+m = 100
+4 nodes
+
+node  0  spent  0.00139546394348  seconds selecting jobs
+node  0  spent  444.518780947  seconds calculating parent sets
+node  0  spent  0.000689506530762  second communicating with other nodes
+node  0  spent  3.2901763916e-05  seconds tracking nodes to help decide with whom to communicate
+doing stuff on node  3
+doing stuff on node  3
+node  3  spent  0.00124144554138  seconds selecting jobs
+node  3  spent  390.814662933  seconds calculating parent sets
+node  3  spent  64.8473420143  second communicating with other nodes
+node  3  spent  3.50475311279e-05  seconds tracking nodes to help decide with whom to communicate
+doing stuff on node  1
+node  1  spent  0.00130677223206  seconds selecting jobs
+node  1  spent  466.968627453  seconds calculating parent sets
+node  1  spent  5.83530974388  second communicating with other nodes
+node  1  spent  3.71932983398e-05  seconds tracking nodes to help decide with whom to communicate
+doing stuff on node  2
+doing stuff on node  2
+node  2  spent  0.00124263763428  seconds selecting jobs
+node  2  spent  523.335605145  seconds calculating parent sets
+node  2  spent  45.3231647015  second communicating with other nodes
+node  2  spent  2.69412994385e-05  seconds tracking nodes to help decide with whom to communicate
+nodes collectively spent  0.00016188621521  seconds gathering the output
+node 0 spent  1.28746032715e-05  seconds updating the dictionaries
+{0: [], 1: [], 2: [], 3: [], 4: [], 5: [], 6: [], 7: [5], 8: [6], 9: [7], 10: [2], 11: [7], 12: [8], 13: [], 14: [8, 7], 15: [], 16: [9, 3, 14, 8], 17: [6], 18: [5], 19: [9], 20: [7], 21: [], 22: [19], 23: [22, 19, 2, 4], 24: [20], 25: [], 26: [15, 4, 11], 27: [4], 28: [19], 29: [14, 26, 17], 30: [16, 7], 31: [2, 24], 32: [24], 33: [31, 26, 14], 34: [], 35: [12, 34], 36: [34, 15, 9, 19, 26], 37: [10, 8, 16, 19], 38: [33, 4], 39: [30, 9, 5], 40: [34], 41: [6, 10, 2, 32, 34, 20], 42: [25, 12, 34], 43: [36, 15, 21, 39, 3], 44: [24, 2, 0, 6], 45: [7, 26, 39, 20, 8], 46: [29, 0, 19], 47: [25, 32, 38, 4], 48: [27, 28, 13], 49: [25, 15, 26], 50: [22, 38, 18], 51: [22, 28, 13, 34, 3, 18, 40], 52: [34, 1, 18, 43], 53: [2, 33], 54: [37, 3, 33, 41], 55: [25, 38, 34, 14], 56: [18, 15, 25], 57: [27, 28, 35, 14, 47], 58: [21], 59: [50, 12, 9, 35], 60: [12, 57, 5, 23], 61: [23, 59, 28, 3, 12, 16], 62: [46, 35, 39, 20, 55], 63: [24, 7, 31, 12, 18, 20, 57], 64: [0, 39, 40, 60], 65: [16, 9, 24], 66: [55, 65], 67: [21, 58, 24], 68: [0, 13, 67, 11, 55], 69: [31, 29, 32], 70: [24, 33], 71: [8, 69, 10, 6, 33, 66, 3, 40], 72: [60, 48, 61, 68], 73: [26, 8, 42, 5], 74: [10, 71, 43, 39, 2], 75: [34, 45, 9, 21], 76: [17, 34, 23, 9, 39], 77: [44, 24, 39, 75, 47], 78: [36, 47], 79: [53, 1, 0, 9, 19, 49], 80: [18, 13, 61, 49, 10], 81: [35, 51, 70, 78, 15, 1], 82: [22, 34, 44, 14], 83: [6, 29, 33, 55, 66, 19], 84: [48, 27, 7, 45, 20, 34, 42], 85: [43, 27, 71], 86: [50, 57, 38, 34, 40], 87: [79, 64, 72, 3, 82, 0, 53], 88: [25, 59, 34, 31], 89: [35, 63, 49, 69, 29], 90: [42, 6, 87, 12, 7, 77], 91: [15, 82, 16, 29, 69, 9], 92: [86, 23, 54, 89, 77], 93: [18, 66, 84, 79, 1], 94: [54, 56, 35, 50, 38, 43, 55], 95: [66, 91, 87, 88, 77], 96: [80, 82], 97: [46, 20, 16, 63, 43, 71], 98: [6, 81, 14, 51], 99: [20, 1, 58]}
+V4 Parallel Computing Time:  568.668686867

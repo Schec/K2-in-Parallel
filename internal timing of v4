@@ -7,24 +7,468 @@ node  0  spent  0.00139546394348  seconds selecting jobs
 node  0  spent  444.518780947  seconds calculating parent sets
 node  0  spent  0.000689506530762  second communicating with other nodes
 node  0  spent  3.2901763916e-05  seconds tracking nodes to help decide with whom to communicate
-doing stuff on node  3
-doing stuff on node  3
 node  3  spent  0.00124144554138  seconds selecting jobs
 node  3  spent  390.814662933  seconds calculating parent sets
 node  3  spent  64.8473420143  second communicating with other nodes
 node  3  spent  3.50475311279e-05  seconds tracking nodes to help decide with whom to communicate
-doing stuff on node  1
 node  1  spent  0.00130677223206  seconds selecting jobs
 node  1  spent  466.968627453  seconds calculating parent sets
 node  1  spent  5.83530974388  second communicating with other nodes
 node  1  spent  3.71932983398e-05  seconds tracking nodes to help decide with whom to communicate
-doing stuff on node  2
-doing stuff on node  2
 node  2  spent  0.00124263763428  seconds selecting jobs
 node  2  spent  523.335605145  seconds calculating parent sets
 node  2  spent  45.3231647015  second communicating with other nodes
 node  2  spent  2.69412994385e-05  seconds tracking nodes to help decide with whom to communicate
 nodes collectively spent  0.00016188621521  seconds gathering the output
 node 0 spent  1.28746032715e-05  seconds updating the dictionaries
-{0: [], 1: [], 2: [], 3: [], 4: [], 5: [], 6: [], 7: [5], 8: [6], 9: [7], 10: [2], 11: [7], 12: [8], 13: [], 14: [8, 7], 15: [], 16: [9, 3, 14, 8], 17: [6], 18: [5], 19: [9], 20: [7], 21: [], 22: [19], 23: [22, 19, 2, 4], 24: [20], 25: [], 26: [15, 4, 11], 27: [4], 28: [19], 29: [14, 26, 17], 30: [16, 7], 31: [2, 24], 32: [24], 33: [31, 26, 14], 34: [], 35: [12, 34], 36: [34, 15, 9, 19, 26], 37: [10, 8, 16, 19], 38: [33, 4], 39: [30, 9, 5], 40: [34], 41: [6, 10, 2, 32, 34, 20], 42: [25, 12, 34], 43: [36, 15, 21, 39, 3], 44: [24, 2, 0, 6], 45: [7, 26, 39, 20, 8], 46: [29, 0, 19], 47: [25, 32, 38, 4], 48: [27, 28, 13], 49: [25, 15, 26], 50: [22, 38, 18], 51: [22, 28, 13, 34, 3, 18, 40], 52: [34, 1, 18, 43], 53: [2, 33], 54: [37, 3, 33, 41], 55: [25, 38, 34, 14], 56: [18, 15, 25], 57: [27, 28, 35, 14, 47], 58: [21], 59: [50, 12, 9, 35], 60: [12, 57, 5, 23], 61: [23, 59, 28, 3, 12, 16], 62: [46, 35, 39, 20, 55], 63: [24, 7, 31, 12, 18, 20, 57], 64: [0, 39, 40, 60], 65: [16, 9, 24], 66: [55, 65], 67: [21, 58, 24], 68: [0, 13, 67, 11, 55], 69: [31, 29, 32], 70: [24, 33], 71: [8, 69, 10, 6, 33, 66, 3, 40], 72: [60, 48, 61, 68], 73: [26, 8, 42, 5], 74: [10, 71, 43, 39, 2], 75: [34, 45, 9, 21], 76: [17, 34, 23, 9, 39], 77: [44, 24, 39, 75, 47], 78: [36, 47], 79: [53, 1, 0, 9, 19, 49], 80: [18, 13, 61, 49, 10], 81: [35, 51, 70, 78, 15, 1], 82: [22, 34, 44, 14], 83: [6, 29, 33, 55, 66, 19], 84: [48, 27, 7, 45, 20, 34, 42], 85: [43, 27, 71], 86: [50, 57, 38, 34, 40], 87: [79, 64, 72, 3, 82, 0, 53], 88: [25, 59, 34, 31], 89: [35, 63, 49, 69, 29], 90: [42, 6, 87, 12, 7, 77], 91: [15, 82, 16, 29, 69, 9], 92: [86, 23, 54, 89, 77], 93: [18, 66, 84, 79, 1], 94: [54, 56, 35, 50, 38, 43, 55], 95: [66, 91, 87, 88, 77], 96: [80, 82], 97: [46, 20, 16, 63, 43, 71], 98: [6, 81, 14, 51], 99: [20, 1, 58]}
 V4 Parallel Computing Time:  568.668686867
+
+
+u = 99
+n = 100
+m = 100
+8 nodes
+node  2  spent  0.00215077400208  seconds selecting jobs
+node  2  spent  433.971812725  seconds calculating parent sets
+node  2  spent  470.25508213  second communicating with other nodes
+node  2  spent  4.98294830322e-05  seconds tracking nodes to help decide with whom to communicate
+node  3  spent  0.00264668464661  seconds selecting jobs
+node  3  spent  485.901829958  seconds calculating parent sets
+node  3  spent  418.324118137  second communicating with other nodes
+node  3  spent  5.84125518799e-05  seconds tracking nodes to help decide with whom to communicate
+node  0  spent  0.00249242782593  seconds selecting jobs
+node  0  spent  904.226070642  seconds calculating parent sets
+node  0  spent  0.000717639923096  second communicating with other nodes
+node  0  spent  4.62532043457e-05  seconds tracking nodes to help decide with whom to communicate
+node  6  spent  0.00140357017517  seconds selecting jobs
+node  6  spent  139.552094936  seconds calculating parent sets
+node  6  spent  764.675252914  second communicating with other nodes
+node  6  spent  5.41210174561e-05  seconds tracking nodes to help decide with whom to communicate
+node  4  spent  0.00118112564087  seconds selecting jobs
+node  4  spent  277.046879292  seconds calculating parent sets
+node  5  spent  0.00112700462341  seconds selecting jobs
+node  4  spent  627.183526993  second communicating with other nodes
+node  4  spent  3.88622283936e-05  seconds tracking nodes to help decide with whom to communicate
+node  5  spent  141.853457451  seconds calculating parent sets
+node  5  spent  762.377026081  second communicating with other nodes
+node  5  spent  2.88486480713e-05  seconds tracking nodes to help decide with whom to communicate
+node  1  spent  486.800728798  seconds calculating parent sets
+node  7  spent  0.00109505653381  seconds selecting jobs
+node  7  spent  175.944773912  seconds calculating parent sets
+node  7  spent  728.28200078  second communicating with other nodes
+node  7  spent  5.10215759277e-05  seconds tracking nodes to help decide with whom to communicate
+node  1  spent  417.424653053  second communicating with other nodes
+node  1  spent  6.41345977783e-05  seconds tracking nodes to help decide with whom to communicate
+nodes collectively spent  0.000174999237061  seconds gathering the output
+node 0 spent  1.50203704834e-05  seconds updating the dictionaries
+V4 Parallel Computing Time:  904.240610123
+
+u = 99
+n = 100
+m = 100
+8 nodes
+Isend instead of Send
+node  4  spent  0.00112891197205  seconds selecting jobs
+node  4  spent  133.702920914  seconds calculating parent sets
+node  4  spent  206.880211353  second communicating with other nodes
+node  4  spent  2.8133392334e-05  seconds tracking nodes to help decide with whom to communicate
+node  5  spent  0.00234794616699  seconds selecting jobs
+node  5  spent  297.311293125  seconds calculating parent sets
+node  5  spent  43.2663199902  second communicating with other nodes
+node  6  spent  0.00233292579651  seconds selecting jobs
+node  6  spent  295.685345411  seconds calculating parent sets
+node  5  spent  4.88758087158e-05  seconds tracking nodes to help decide with whom to communicate
+node  6  spent  44.8924396038  second communicating with other nodes
+node  6  spent  6.12735748291e-05  seconds tracking nodes to help decide with whom to communicate
+node  3  spent  0.00190138816833  seconds selecting jobs
+node  3  spent  340.577764511  seconds calculating parent sets
+node  0  spent  0.0016131401062  seconds selecting jobs
+node  0  spent  189.829450607  seconds calculating parent sets
+node  0  spent  150.753184319  second communicating with other nodes
+node  0  spent  2.69412994385e-05  seconds tracking nodes to help decide with whom to communicate
+node  7  spent  0.00116205215454  seconds selecting jobs
+node  7  spent  221.406719685  seconds calculating parent sets
+node  7  spent  119.176763535  second communicating with other nodes
+node  7  spent  3.69548797607e-05  seconds tracking nodes to help decide with whom to communicate
+node  1  spent  0.00177192687988  seconds selecting jobs
+node  1  spent  113.980580807  seconds calculating parent sets
+node  1  spent  226.598206758  second communicating with other nodes
+node  3  spent  0.000813484191895  second communicating with other nodes
+node  3  spent  6.103515625e-05  seconds tracking nodes to help decide with whom to communicate
+node  1  spent  4.41074371338e-05  seconds tracking nodes to help decide with whom to communicate
+node  2  spent  0.00212574005127  seconds selecting jobs
+node  2  spent  235.388708115  seconds calculating parent sets
+node  2  spent  105.193847418  second communicating with other nodes
+node  2  spent  3.60012054443e-05  seconds tracking nodes to help decide with whom to communicate
+nodes collectively spent  0.000202178955078  seconds gathering the output
+node 0 spent  2.40802764893e-05  seconds updating the dictionaries
+V4 Parallel Computing Time:  340.592051029
+
+
+
+node  4  spent  4.50611114502e-05  receiving and testing receive
+node  3  spent  5.50746917725e-05  receiving and testing receive
+node  0  spent  4.41074371338e-05  receiving and testing receive
+node  5  spent  4.29153442383e-05  receiving and testing receive
+node  0  spent  1.8835067749e-05  receiving and testing receive
+doing stuff on node  7
+doing stuff on node  6
+node  7  spent  5.60283660889e-05  receiving and testing receive
+node  6  spent  5.19752502441e-05  receiving and testing receive
+doing stuff on node  1
+doing stuff on node  2
+node  1  spent  5.81741333008e-05  receiving and testing receive
+node  2  spent  5.41210174561e-05  receiving and testing receive
+doing stuff on node  3
+node  3  spent  1.90734863281e-05  receiving and testing receive
+doing stuff on node  1
+node  1  spent  1.90734863281e-05  receiving and testing receive
+doing stuff on node  4
+node  4  spent  1.50203704834e-05  receiving and testing receive
+doing stuff on node  2
+node  2  spent  2.00271606445e-05  receiving and testing receive
+doing stuff on node  5
+node  5  spent  1.28746032715e-05  receiving and testing receive
+doing stuff on node  6
+node  6  spent  2.09808349609e-05  receiving and testing receive
+doing stuff on node  7
+node  7  spent  2.00271606445e-05  receiving and testing receive
+doing stuff on node  4
+node  4  spent  1.38282775879e-05  receiving and testing receive
+doing stuff on node  3
+node  3  spent  1.78813934326e-05  receiving and testing receive
+doing stuff on node  5
+node  5  spent  1.31130218506e-05  receiving and testing receive
+doing stuff on node  7
+doing stuff on node  6
+node  7  spent  1.90734863281e-05  receiving and testing receive
+node  6  spent  1.78813934326e-05  receiving and testing receive
+doing stuff on node  2
+node  2  spent  2.00271606445e-05  receiving and testing receive
+doing stuff on node  1
+node  1  spent  2.121925354e-05  receiving and testing receive
+doing stuff on node  0
+node  0  spent  1.59740447998e-05  receiving and testing receive
+doing stuff on node  0
+node  0  spent  1.4066696167e-05  receiving and testing receive
+doing stuff on node  6
+node  6  spent  1.8835067749e-05  receiving and testing receive
+doing stuff on node  3
+node  3  spent  1.90734863281e-05  receiving and testing receive
+doing stuff on node  5
+node  5  spent  1.4066696167e-05  receiving and testing receive
+doing stuff on node  1
+node  1  spent  2.09808349609e-05  receiving and testing receive
+doing stuff on node  3
+node  3  spent  3.2901763916e-05  receiving and testing receive
+doing stuff on node  1
+node  1  spent  3.69548797607e-05  receiving and testing receive
+doing stuff on node  4
+node  4  spent  1.59740447998e-05  receiving and testing receive
+doing stuff on node  1
+node  1  spent  2.09808349609e-05  receiving and testing receive
+doing stuff on node  2
+node  2  spent  2.59876251221e-05  receiving and testing receive
+doing stuff on node  3
+node  3  spent  2.21729278564e-05  receiving and testing receive
+doing stuff on node  0
+node  0  spent  3.19480895996e-05  receiving and testing receive
+doing stuff on node  2
+node  2  spent  3.60012054443e-05  receiving and testing receive
+doing stuff on node  4
+node  4  spent  3.09944152832e-05  receiving and testing receive
+doing stuff on node  4
+node  4  spent  1.78813934326e-05  receiving and testing receive
+doing stuff on node  5
+node  5  spent  3.00407409668e-05  receiving and testing receive
+doing stuff on node  0
+node  0  spent  1.50203704834e-05  receiving and testing receive
+doing stuff on node  5
+node  5  spent  1.71661376953e-05  receiving and testing receive
+doing stuff on node  6
+node  6  spent  4.10079956055e-05  receiving and testing receive
+doing stuff on node  5
+node  5  spent  1.81198120117e-05  receiving and testing receive
+doing stuff on node  6
+node  6  spent  2.50339508057e-05  receiving and testing receive
+doing stuff on node  0
+node  0  spent  2.00271606445e-05  receiving and testing receive
+doing stuff on node  7
+node  7  spent  2.90870666504e-05  receiving and testing receive
+doing stuff on node  1
+node  1  spent  2.90870666504e-05  receiving and testing receive
+doing stuff on node  3
+node  3  spent  2.47955322266e-05  receiving and testing receive
+doing stuff on node  7
+node  7  spent  4.10079956055e-05  receiving and testing receive
+doing stuff on node  7
+node  7  spent  2.59876251221e-05  receiving and testing receive
+doing stuff on node  2
+node  2  spent  2.78949737549e-05  receiving and testing receive
+doing stuff on node  1
+node  1  spent  2.98023223877e-05  receiving and testing receive
+doing stuff on node  2
+node  2  spent  3.09944152832e-05  receiving and testing receive
+doing stuff on node  4
+node  4  spent  2.90870666504e-05  receiving and testing receive
+doing stuff on node  2
+node  2  spent  2.8133392334e-05  receiving and testing receive
+doing stuff on node  1
+node  1  spent  2.21729278564e-05  receiving and testing receive
+doing stuff on node  0
+node  0  spent  2.40802764893e-05  receiving and testing receive
+doing stuff on node  5
+node  5  spent  2.09808349609e-05  receiving and testing receive
+doing stuff on node  0
+node  0  spent  2.00271606445e-05  receiving and testing receive
+doing stuff on node  0
+node  0  spent  2.59876251221e-05  receiving and testing receive
+doing stuff on node  5
+node  5  spent  2.50339508057e-05  receiving and testing receive
+doing stuff on node  6
+node  6  spent  2.78949737549e-05  receiving and testing receive
+doing stuff on node  1
+node  1  spent  2.31266021729e-05  receiving and testing receive
+doing stuff on node  4
+node  4  spent  3.09944152832e-05  receiving and testing receive
+doing stuff on node  4
+node  4  spent  3.00407409668e-05  receiving and testing receive
+doing stuff on node  2
+node  2  spent  3.00407409668e-05  receiving and testing receive
+doing stuff on node  5
+node  5  spent  2.31266021729e-05  receiving and testing receive
+doing stuff on node  0
+node  0  spent  2.21729278564e-05  receiving and testing receive
+doing stuff on node  0
+node  0  spent  2.19345092773e-05  receiving and testing receive
+doing stuff on node  5
+node  5  spent  2.31266021729e-05  receiving and testing receive
+doing stuff on node  0
+node  0  spent  2.19345092773e-05  receiving and testing receive
+doing stuff on node  2
+node  2  spent  3.00407409668e-05  receiving and testing receive
+doing stuff on node  1
+node  1  spent  2.50339508057e-05  receiving and testing receive
+doing stuff on node  7
+node  7  spent  3.00407409668e-05  receiving and testing receive
+doing stuff on node  7
+node  7  spent  2.19345092773e-05  receiving and testing receive
+doing stuff on node  1
+node  1  spent  2.40802764893e-05  receiving and testing receive
+doing stuff on node  7
+node  7  spent  3.19480895996e-05  receiving and testing receive
+doing stuff on node  4
+node  4  spent  3.09944152832e-05  receiving and testing receive
+doing stuff on node  1
+node  1  spent  2.31266021729e-05  receiving and testing receive
+doing stuff on node  4
+node  4  spent  2.88486480713e-05  receiving and testing receive
+node  1  spent  0.000158071517944  seconds sending done signals
+doing stuff on node  1
+doing stuff on node  7
+node  7  spent  4.88758087158e-05  receiving and testing receive
+doing stuff on node  7
+node  7  spent  1.50203704834e-05  receiving and testing receive
+doing stuff on node  4
+node  4  spent  3.40938568115e-05  receiving and testing receive
+doing stuff on node  4
+node  4  spent  1.50203704834e-05  receiving and testing receive
+doing stuff on node  2
+node  2  spent  4.98294830322e-05  receiving and testing receive
+doing stuff on node  2
+node  2  spent  1.90734863281e-05  receiving and testing receive
+node  1  spent  4.63506412506  seconds checking for work
+node  2  spent  6.38961791992e-05  seconds sending work
+doing stuff on node  2
+node  2  spent  1.59740447998e-05  receiving and testing receive
+doing stuff on node  7
+node  7  spent  3.19480895996e-05  receiving and testing receive
+node  0  spent  0.000159978866577  seconds sending done signals
+doing stuff on node  0
+node  0  spent  2.90870666504e-05  seconds checking for work
+doing stuff on node  0
+doing stuff on node  1
+doing stuff on node  2
+node  2  spent  5.19752502441e-05  receiving and testing receive
+doing stuff on node  2
+node  2  spent  1.62124633789e-05  receiving and testing receive
+doing stuff on node  6
+node  6  spent  5.10215759277e-05  receiving and testing receive
+doing stuff on node  6
+node  6  spent  2.19345092773e-05  receiving and testing receive
+doing stuff on node  6
+node  6  spent  1.50203704834e-05  receiving and testing receive
+doing stuff on node  6
+node  6  spent  2.90870666504e-05  receiving and testing receive
+doing stuff on node  3
+node  3  spent  4.72068786621e-05  receiving and testing receive
+doing stuff on node  3
+node  3  spent  2.19345092773e-05  receiving and testing receive
+doing stuff on node  3
+node  3  spent  1.4066696167e-05  receiving and testing receive
+doing stuff on node  5
+node  5  spent  3.50475311279e-05  receiving and testing receive
+doing stuff on node  5
+node  5  spent  2.19345092773e-05  receiving and testing receive
+doing stuff on node  5
+node  5  spent  1.09672546387e-05  receiving and testing receive
+doing stuff on node  6
+node  6  spent  3.00407409668e-05  receiving and testing receive
+node  5  spent  0.000164031982422  seconds sending done signals
+doing stuff on node  5
+doing stuff on node  3
+node  3  spent  4.19616699219e-05  receiving and testing receive
+doing stuff on node  3
+node  3  spent  1.4066696167e-05  receiving and testing receive
+doing stuff on node  6
+node  6  spent  4.19616699219e-05  receiving and testing receive
+doing stuff on node  6
+node  6  spent  1.69277191162e-05  receiving and testing receive
+node  5  spent  4.20755004883  seconds checking for work
+node  6  spent  7.48634338379e-05  seconds sending work
+doing stuff on node  6
+node  6  spent  1.50203704834e-05  receiving and testing receive
+doing stuff on node  3
+node  3  spent  2.59876251221e-05  receiving and testing receive
+node  6  spent  0.000252962112427  seconds sending done signals
+doing stuff on node  6
+node  4  spent  0.000273942947388  seconds sending done signals
+doing stuff on node  4
+node  4  spent  3.50475311279e-05  seconds checking for work
+doing stuff on node  4
+node  4  spent  2.69412994385e-05  seconds checking for work
+doing stuff on node  4
+node  0  spent  132.815816164  seconds checking for work
+doing stuff on node  0
+node  1  spent  131.205414057  seconds checking for work
+doing stuff on node  1
+node  2  spent  0.000211954116821  seconds sending done signals
+doing stuff on node  2
+doing stuff on node  3
+node  3  spent  4.10079956055e-05  receiving and testing receive
+doing stuff on node  3
+node  3  spent  1.90734863281e-05  receiving and testing receive
+doing stuff on node  3
+node  3  spent  1.71661376953e-05  receiving and testing receive
+doing stuff on node  3
+node  3  spent  1.78813934326e-05  receiving and testing receive
+node  0  spent  2.69871592522  seconds checking for work
+node  3  spent  4.57763671875e-05  seconds sending work
+doing stuff on node  3
+node  3  spent  1.81198120117e-05  receiving and testing receive
+node  1  spent  2.69893193245  seconds checking for work
+node  3  spent  3.88622283936e-05  seconds sending work
+doing stuff on node  3
+node  3  spent  1.59740447998e-05  receiving and testing receive
+doing stuff on node  5
+node  5  spent  4.88758087158e-05  seconds checking for work
+doing stuff on node  5
+doing stuff on node  1
+doing stuff on node  0
+doing stuff on node  7
+node  7  spent  4.00543212891e-05  receiving and testing receive
+doing stuff on node  7
+node  7  spent  1.69277191162e-05  receiving and testing receive
+doing stuff on node  7
+node  7  spent  2.00271606445e-05  receiving and testing receive
+doing stuff on node  7
+node  7  spent  1.21593475342e-05  receiving and testing receive
+node  7  spent  5.88893890381e-05  seconds sending work
+node  6  spent  102.768754005  seconds checking for work
+node  4  spent  101.30369997  seconds checking for work
+node  5  spent  45.2579171658  seconds checking for work
+doing stuff on node  4
+node  7  spent  0.000217914581299  seconds sending done signals
+doing stuff on node  7
+doing stuff on node  5
+node  4  spent  3.00407409668e-05  seconds checking for work
+node  7  spent  3.19480895996e-05  seconds checking for work
+doing stuff on node  4
+doing stuff on node  7
+node  5  spent  3.50475311279e-05  seconds checking for work
+doing stuff on node  5
+node  4  spent  2.121925354e-05  seconds checking for work
+doing stuff on node  4
+node  0  spent  43.2229030132  seconds checking for work
+node  1  spent  56.2592868805  seconds checking for work
+doing stuff on node  0
+doing stuff on node  1
+node  2  spent  72.1575579643  seconds checking for work
+node  4  spent  18.6167719364  seconds checking for work
+doing stuff on node  2
+node  0  spent  2.38418579102e-05  seconds checking for work
+doing stuff on node  0
+node  4  spent  0.00187468528748  seconds selecting jobs
+node  4  spent  196.372400045  seconds calculating parent sets
+node  4  spent  119.921196938  second communicating with other nodes
+node  1  spent  2.50339508057e-05  seconds checking for work
+node  5  spent  18.6168379784  seconds checking for work
+node  0  spent  1.59740447998e-05  seconds checking for work
+node  4  spent  3.40938568115e-05  seconds tracking nodes to help decide with whom to communicate
+doing stuff on node  1
+doing stuff on node  5
+node  3  spent  0.000213861465454  seconds sending done signals
+doing stuff on node  3
+node  2  spent  3.2901763916e-05  seconds checking for work
+doing stuff on node  2
+doing stuff on node  0
+node  0  spent  1.71661376953e-05  seconds checking for work
+node  7  spent  18.6169300079  seconds checking for work
+node  1  spent  1.69277191162e-05  seconds checking for work
+doing stuff on node  1
+doing stuff on node  0
+doing stuff on node  7
+node  5  spent  5.41210174561e-05  seconds checking for work
+node  3  spent  4.72068786621e-05  seconds checking for work
+node  2  spent  2.00271606445e-05  seconds checking for work
+doing stuff on node  2
+node  1  spent  1.59740447998e-05  seconds checking for work
+doing stuff on node  1
+node  0  spent  1.4066696167e-05  seconds checking for work
+node  0  spent  0.00140595436096  seconds selecting jobs
+node  0  spent  137.555601597  seconds calculating parent sets
+node  7  spent  2.78949737549e-05  seconds checking for work
+node  5  spent  0.00116276741028  seconds selecting jobs
+node  3  spent  0.00138783454895  seconds selecting jobs
+node  3  spent  316.293311357  seconds calculating parent sets
+node  0  spent  178.737991333  second communicating with other nodes
+node  0  spent  2.59876251221e-05  seconds tracking nodes to help decide with whom to communicate
+node  1  spent  1.4066696167e-05  seconds checking for work
+doing stuff on node  1
+node  1  spent  1.50203704834e-05  seconds checking for work
+node  1  spent  0.00200581550598  seconds selecting jobs
+node  1  spent  121.489691734  seconds calculating parent sets
+node  3  spent  0.000831127166748  second communicating with other nodes
+node  3  spent  4.6968460083e-05  seconds tracking nodes to help decide with whom to communicate
+node  7  spent  0.00227522850037  seconds selecting jobs
+node  7  spent  297.671326876  seconds calculating parent sets
+node  7  spent  18.6177268028  second communicating with other nodes
+node  7  spent  5.48362731934e-05  seconds tracking nodes to help decide with whom to communicate
+node  5  spent  248.210547686  seconds calculating parent sets
+node  5  spent  68.0829157829  second communicating with other nodes
+node  5  spent  4.31537628174e-05  seconds tracking nodes to help decide with whom to communicate
+node  2  spent  2.00271606445e-05  seconds checking for work
+doing stuff on node  2
+node  1  spent  194.799295902  second communicating with other nodes
+node  1  spent  4.38690185547e-05  seconds tracking nodes to help decide with whom to communicate
+node  2  spent  1.81198120117e-05  seconds checking for work
+node  2  spent  0.00248980522156  seconds selecting jobs
+node  2  spent  244.130043507  seconds calculating parent sets
+node  2  spent  72.1583812237  second communicating with other nodes
+node  2  spent  5.26905059814e-05  seconds tracking nodes to help decide with whom to communicate
+doing stuff on node  6
+node  6  spent  4.79221343994e-05  seconds checking for work
+doing stuff on node  6
+node  6  spent  2.00271606445e-05  seconds checking for work
+doing stuff on node  6
+node  6  spent  2.00271606445e-05  seconds checking for work
+doing stuff on node  6
+node  6  spent  1.90734863281e-05  seconds checking for work
+node  6  spent  0.00229096412659  seconds selecting jobs
+node  6  spent  232.432486534  seconds calculating parent sets
+node  6  spent  102.769613504  second communicating with other nodes
+node  6  spent  5.45978546143e-05  seconds tracking nodes to help decide with whom to communicate
+nodes collectively spent  0.00016188621521  seconds gathering the output
+node 0 spent  1.71661376953e-05  seconds updating the dictionaries
+{0: [], 1: [], 2: [], 3: [], 4: [], 5: [], 6: [], 7: [], 8: [], 9: [], 10: [], 11: [], 12: [], 13: [], 14: [], 15: [1], 16: [], 17: [10], 18: [7, 12], 19: [15], 20: [2, 4], 21: [19], 22: [], 23: [16, 12, 17, 22], 24: [22, 19, 13], 25: [14, 10, 19], 26: [6, 17, 2], 27: [15, 25], 28: [19], 29: [], 30: [], 31: [22, 7], 32: [6, 10], 33: [], 34: [33, 1, 23, 21], 35: [8], 36: [], 37: [], 38: [23], 39: [34], 40: [31, 39, 15, 10, 2, 26], 41: [8, 26, 28, 35, 16], 42: [18, 5], 43: [1, 13, 9, 7, 26], 44: [27, 23, 30, 21], 45: [4, 6, 41], 46: [38, 41, 20], 47: [43, 26, 37], 48: [42, 9, 28, 24, 47], 49: [3, 5, 25], 50: [16, 34], 51: [14, 30, 5, 31, 41, 8, 4, 2], 52: [39, 11, 30, 22], 53: [1, 37, 20, 46, 29], 54: [38, 23, 46, 4, 47, 0, 34], 55: [], 56: [14, 42, 49, 41], 57: [49, 41, 50], 58: [16, 39, 26], 59: [26, 50], 60: [27, 42, 34, 37, 57], 61: [11, 54, 26, 39], 62: [39, 20, 4], 63: [49, 31], 64: [1, 39], 65: [17, 9, 24, 30], 66: [5, 32, 16, 24], 67: [24, 23, 59], 68: [6, 62, 61, 63, 31], 69: [11, 10, 3, 30], 70: [24, 21, 38, 56], 71: [53, 4, 27, 3], 72: [15, 26, 71], 73: [26, 42, 54], 74: [24, 0, 21], 75: [31, 16, 44], 76: [42, 29, 67, 74, 31, 14], 77: [35, 28, 63, 70, 8], 78: [72, 50, 64, 9, 39], 79: [54, 52, 67, 63], 80: [4, 77], 81: [18, 32, 0], 82: [34, 21, 23, 5, 69], 83: [60, 10, 7, 4, 33], 84: [22, 19, 61], 85: [52, 1, 27, 9, 51, 13, 34], 86: [36, 62, 37, 43, 64, 9], 87: [19, 44, 7, 47, 21, 42, 57], 88: [18, 69, 34, 63, 24], 89: [65, 54], 90: [29, 12, 56, 79], 91: [22, 59, 89, 37, 19, 28], 92: [88, 34, 41, 44], 93: [3, 61, 79, 88, 67], 94: [73, 25, 11, 46], 95: [64, 4, 78], 96: [83, 41, 12, 28, 17, 39], 97: [29, 4, 90, 83], 98: [11, 42, 34, 74, 86, 32], 99: [46, 77, 29, 89, 92, 57]}
+V4 Parallel Computing Time:  335.216084003

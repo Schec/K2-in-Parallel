@@ -22,7 +22,7 @@ def vals_of_attributes(D,n):
 def alpha(df, mask):
     _df = df
     for combo in mask:
-        _df = _df[_df[combo[0]] == combo[1]]  # I know there must be a way to speed this up - but i couldn't find it
+        _df = _df[_df[combo[0]] == combo[1]] 
     return len(_df)
 
 def f(i,pi,attribute_values,df):
@@ -168,13 +168,13 @@ def k2_in_parallel(D,node_order,comm,rank,size,u=2):
             # send half of the remaining work if there is enough left,
             else:
                 # build the message
-                a = list(secondchunk[np.ceil(1/2*lsec):lsec])
+                a = list(secondchunk[int(np.ceil(1/2*lsec)):lsec])
                 # pad the message with zeros (for consistent-sized messages)
                 b = list(np.zeros(lsig-len(a)))
                 # send the message
                 comm.Send(np.array(a+b, dtype=np.int32), dest=friend)
                 # update my own chunk of work
-                secondchunk = secondchunk[0:np.ceil(1/2*lsec)]
+                secondchunk = secondchunk[0:int(np.ceil(1/2*lsec))]
 
                 i = secondchunk.pop(0) 
                 parents[node_order[i]] = parent_set(i, node_order, attribute_values, df, u)

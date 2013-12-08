@@ -19,7 +19,7 @@ def vals_of_attributes(D,n):
 def alpha(df, mask):
     _df = df
     for combo in mask:
-        _df = _df[_df[combo[0]] == combo[1]]  # I know there must be a way to speed this up - but i couldn't find it
+        _df = _df[_df[combo[0]] == combo[1]] 
     return len(_df)
 
 def f(i,pi,attribute_values,df):
@@ -154,7 +154,7 @@ def k2_in_parallel(D,node_order,comm,rank,size,u=2):
         #b = time.time()
         #print "node 0 spent ", b-a, " seconds updating the dictionaries"
 
-        print parents
+        #print parents
         return parents
     
 

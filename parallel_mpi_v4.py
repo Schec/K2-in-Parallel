@@ -122,7 +122,7 @@ def k2_in_parallel(D,node_order,comm,rank,size,u=2):
     attribute_values = vals_of_attributes(D,n)
 
     # we'll need this constant later for message sizes
-    lsig = int(np.floor(n/(2*size)))
+    lsig = int(np.ceil(n/(2*size)))
 
     df = pd.DataFrame(D)
     OKToProceed = False
@@ -137,8 +137,7 @@ def k2_in_parallel(D,node_order,comm,rank,size,u=2):
     friend_in_need = np.array([-1], dtype=np.int32)
 
     # this is the signal we'll send to friends who ask for work to let them know that we don't have any for them
-    done = np.zeros(lsig, dtype = np.int32)
-    done[0] = -2
+    done = np.array([-2], dtype = np.int32)
 
     lall = len(all_i)
 
@@ -147,20 +146,29 @@ def k2_in_parallel(D,node_order,comm,rank,size,u=2):
         req = comm.Irecv(friend_in_need, source = MPI.ANY_SOURCE) # this needs to be non-blocking, asynchronous communication -- no pickle option available
         if req.Test(status = status) == False:
             req.Cancel()
+        else:
+            print "node ", rank, " received ", friend_in_need, " in first part "
 
-        # in this case we do work
+        # deal with the friend in need
         if not friend_in_need == -1:
-            friend = friend_in_need
 
-            # this friend asked for work, so don't send work to this friend later
-            friends.remove(friend)
+            # identify the friend who sent the message
+            if friend_in_need == -2:
+                friend =  status.Get_source()
+            else:
+                friend = friend_in_need
+
+            # this friend asked for work, so don't ask for work from this friend later
+            if friend in friends:
+                friends.remove(friend)
 
             # send done message if we don't have a lot of work left
             if lall < 4:
                 comm.Send(done, dest = friend)
 
+            # don't send any work if the friend just sent that he's done - he'll ask again if he actually wants work
             # send half of the remaining work if there is enough left,
-            else:
+            if lall >= 4 and not friend_in_need == -2:
                 # build the message
                 a = list(all_i[int(np.ceil(1/2*lall)):lall])
                 # pad the message with zeros (for consistent-sized messages)
@@ -170,34 +178,40 @@ def k2_in_parallel(D,node_order,comm,rank,size,u=2):
                 # update my own chunk of work
                 all_i = all_i[0:int(np.ceil(1/2*lall))]
 
-                i = all_i.pop(0) 
-                parents[node_order[i]] = parent_set(i, node_order, attribute_values, df, u)
-
             friend_in_need =  np.array([-1], dtype=np.int32)
 
 
         # whether you sent to a friend or not choose the next element to calculate
         i = all_i.pop(0) 
-        print "node", rank, " calculating feature ", node_order[i] 
         parents[node_order[i]] = parent_set(i, node_order, attribute_values, df, u)
 
         # update lall to see if we should go again
         lall = len(all_i)
 
+    # send done signals to everybody else
+    for f in friends:
+        comm.Send(done, dest = f)
+
     # nodes that are done with work ask their neighbors for work units
     # you could receive up to np.floor(n/(2*size)) work units
-    signal = np.zeros(shape = lsig, dtype = np.int32)
+
 
     while(len(friends) > 0):
         destination = friends.pop(0)
         mess = np.array([rank], dtype=np.int32)
-        sreq = comm.Isend(mess, dest = destination) #sending rank as message eliminates need for Get_source()
-        comm.Recv(signal, source = destination) # this should be blocking - can't do anything without it
-        
-        # get any work from message that exists
+        signal = np.zeros(shape = lsig, dtype = np.int32)
+        # check to see whether this node sent you a done message
+        req = comm.Irecv(signal, source = destination) 
+        if req.Test(status = status) == False:
+            req.Cancel()
+        else:
+            # if not, send him your rank and hope for work back!
+            comm.Send(mess, dest = destination) #sending rank as message eliminates need for Get_source()
+            comm.Recv(signal, source = destination)
+
+        # get any work from signal that exists
         all_i = signal[signal > 0]
         for i in all_i:
-            print "node", rank, " calculating feature ", node_order[i] 
             parents[node_order[i]] = parent_set(i, node_order, attribute_values, df, u)
 
     # sending parents back to node 0 for sorting and printing
@@ -210,10 +224,8 @@ def k2_in_parallel(D,node_order,comm,rank,size,u=2):
         for i in range(len(p)):
             parents.update(p[i])
 
-        print parents
+        #print parents
         return parents
-    
-
 
 if __name__ == "__main__":
     comm = MPI.COMM_WORLD

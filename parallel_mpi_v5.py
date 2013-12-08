@@ -6,6 +6,7 @@ import math
 import operator
 import time
 from mpi4py import MPI
+import sys
 
 import jodys_serial_v2 as serialv
 import parallel_mpi_v4 as v4
@@ -122,7 +123,7 @@ def k2_in_parallel(D,node_order,comm,rank,size,u=2):
     attribute_values = vals_of_attributes(D,n)
 
     # we'll need this constant later for message sizes
-    lsig = int(np.floor(n/(2*size)))
+    lsig = int(np.ceil(n/(2*size)))
 
     df = pd.DataFrame(D)
     OKToProceed = False
@@ -130,15 +131,13 @@ def k2_in_parallel(D,node_order,comm,rank,size,u=2):
 
     #selecting_job_time = 0
     #calculation_time = 0
-
     all_i = find_all_jobs(np.arange(n),rank,size)
 
     friends = range(rank + 1, size) + range(rank)
     friend_in_need = np.array([-1], dtype=np.int32)
 
     # this is the signal we'll send to friends who ask for work to let them know that we don't have any for them
-    done = np.zeros(lsig, dtype = np.int32)
-    done[0] = -2
+    done = np.array([-2], dtype = np.int32)
 
     firstchunk = all_i[0:int(3/4*len(all_i))]
     secondchunk = all_i[int(3/4*len(all_i)):len(all_i)]
@@ -154,19 +153,26 @@ def k2_in_parallel(D,node_order,comm,rank,size,u=2):
         if req.Test(status = status) == False:
             req.Cancel()
 
-        # in this case we do work
+        # deal with the friend in need
         if not friend_in_need == -1:
-            friend = friend_in_need
 
-            # this friend asked for work, so don't send work to this friend later
-            friends.remove(friend)
+            # identify the friend who sent the message
+            if friend_in_need == -2:
+                friend =  status.Get_source()
+            else:
+                friend = friend_in_need
+
+            # this friend asked for work, so don't ask for work from this friend later
+            if friend in friends:
+                friends.remove(friend)
 
             # send done message if we don't have a lot of work left
             if lsec < 4:
                 comm.Send(done, dest = friend)
 
+            # don't send any work if the friend just sent that he's done - he'll ask again if he actually wants work
             # send half of the remaining work if there is enough left,
-            else:
+            if lsec >= 4 and not friend_in_need == -2:
                 # build the message
                 a = list(secondchunk[int(np.ceil(1/2*lsec)):lsec])
                 # pad the message with zeros (for consistent-sized messages)
@@ -175,9 +181,6 @@ def k2_in_parallel(D,node_order,comm,rank,size,u=2):
                 comm.Send(np.array(a+b, dtype=np.int32), dest=friend)
                 # update my own chunk of work
                 secondchunk = secondchunk[0:int(np.ceil(1/2*lsec))]
-
-                i = secondchunk.pop(0) 
-                parents[node_order[i]] = parent_set(i, node_order, attribute_values, df, u)
 
             friend_in_need =  np.array([-1], dtype=np.int32)
 
@@ -189,6 +192,10 @@ def k2_in_parallel(D,node_order,comm,rank,size,u=2):
         # update lsec to see if we should go again
         lsec = len(secondchunk)
 
+    # send done signals toeverybody else
+    for f in friends:
+        comm.Send(done, dest = f)
+
     # nodes that are done with work ask their neighbors for work units
     # you could receive up to np.floor(n/(2*size)) work units
     signal = np.zeros(shape = lsig, dtype = np.int32)
@@ -196,17 +203,23 @@ def k2_in_parallel(D,node_order,comm,rank,size,u=2):
     while(len(friends) > 0):
         destination = friends.pop(0)
         mess = np.array([rank], dtype=np.int32)
-        sreq = comm.Isend(mess, dest = destination) #sending rank as message eliminates need for Get_source()
-        comm.Recv(signal, source = destination) # this should be blocking - can't do anything without it
-        
-        # get any work from message that exists
-        all_i = signal[signal > 0]
-        for i in all_i:
+        signal = np.zeros(shape = lsig, dtype = np.int32)
+        # check to see whether this node sent you a done message
+        req = comm.Irecv(signal, source = destination) 
+        if req.Test(status = status) == False:
+            req.Cancel()
+            # if not, send him your rank and hope for work back!
+            comm.Send(mess, dest = destination) #sending rank as message eliminates need for Get_source()
+            comm.Recv(signal, source = destination)
+
+        # get any work from signal that exists
+        secondchunk = signal[signal > 0]
+        for i in secondchunk:
             parents[node_order[i]] = parent_set(i, node_order, attribute_values, df, u)
 
     # sending parents back to node 0 for sorting and printing
     p = comm.gather(parents, root = 0)
-
+    
     if rank == 0:
     # gather returns a list - converting to a single dictionary
         parents = {}
@@ -214,21 +227,25 @@ def k2_in_parallel(D,node_order,comm,rank,size,u=2):
         for i in range(len(p)):
             parents.update(p[i])
 
-        print parents
+        #print parents
         return parents
-    
-
 
 if __name__ == "__main__":
+
+    n = int(sys.argv[1])
+
+    np.random.seed(42)
+
     comm = MPI.COMM_WORLD
     rank = comm.Get_rank()
     size = comm.Get_size()
     #device = pycuda.autoinit.device.pci_bus_id()
-    #node = MPI.Get_processor_name()
-    
+    #node = MPI.Get_processor_name()  
+
     if rank == 0:
-        D = np.random.binomial(1,0.9,size=(100,40))
-        node_order = list(range(40))
+        timestoprint = []
+        D = np.random.binomial(1,0.9,size=(100,n))
+        node_order = list(range(n))
     else:
         D = None
         node_order = None
@@ -238,8 +255,46 @@ if __name__ == "__main__":
 
     comm.barrier()
     start = MPI.Wtime()
-    k2_in_parallel(D,node_order,comm,rank,size,u=10)
+    v1.k2_in_parallel(D,node_order,comm,rank,size,u=n-1)
     comm.barrier()
     end = MPI.Wtime()
     if rank == 0:
-        print "V5 Parallel Computing Time: ", end-start
+        timestoprint.append(end-start)
+        print "v1 complete"
+
+    comm.barrier()
+    start = MPI.Wtime()
+    v2.k2_in_parallel(D,node_order,comm,rank,size,u=n-1)
+    comm.barrier()
+    end = MPI.Wtime()
+    if rank == 0:
+        timestoprint.append(end-start)
+        print "v2 complete"
+
+    comm.barrier()
+    start = MPI.Wtime()
+    v3.k2_in_parallel(D,node_order,comm,rank,size,u=n-1)
+    comm.barrier()
+    end = MPI.Wtime()
+    if rank == 0:
+        timestoprint.append(end-start)
+        print "v3 complete"
+
+    comm.barrier()
+    start = MPI.Wtime()
+    v4.k2_in_parallel(D,node_order,comm,rank,size,u=n-1)
+    comm.barrier()
+    end = MPI.Wtime()
+    if rank == 0:
+        timestoprint.append(end-start)
+        print "v4 complete"
+
+    comm.barrier()
+    start = MPI.Wtime()
+    k2_in_parallel(D,node_order,comm,rank,size,u=n-1)
+    comm.barrier()
+    end = MPI.Wtime()
+    if rank == 0:
+        timestoprint.append(end-start)
+        print "v5 complete"
+        print timestoprint

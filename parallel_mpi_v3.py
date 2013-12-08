@@ -19,7 +19,7 @@ def vals_of_attributes(D,n):
 def alpha(df, mask):
     _df = df
     for combo in mask:
-        _df = _df[_df[combo[0]] == combo[1]]  # I know there must be a way to speed this up - but i couldn't find it
+        _df = _df[_df[combo[0]] == combo[1]] 
     return len(_df)
 
 def f(i,pi,attribute_values,df):

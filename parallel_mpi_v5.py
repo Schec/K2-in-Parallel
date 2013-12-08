@@ -89,7 +89,7 @@ def find_all_jobs(i,rank,size):
     p1 =  p1[p1%size == rank]
     p2 = i[np.floor(i/size) % 2 == 1]
     p2 =  p2[size - 1 - p2%size == rank]
-    return sorted(list(p1) + list(p2), reverse = True)
+    return sorted(list(p1) + list(p2))
 
 def parent_set(i,node_order,attribute_values,df,u=2):
         OKToProceed = False
@@ -147,6 +147,9 @@ def k2_in_parallel(D,node_order,comm,rank,size,u=2):
 
     lsec = len(secondchunk)
 
+    friends_who_are_done = []
+    friends_who_know_im_done = []
+
     while lsec > 0:
 
         req = comm.Irecv(friend_in_need, source = MPI.ANY_SOURCE) # this needs to be non-blocking, asynchronous communication -- no pickle option available
@@ -162,13 +165,12 @@ def k2_in_parallel(D,node_order,comm,rank,size,u=2):
             else:
                 friend = friend_in_need
 
-            # this friend asked for work, so don't ask for work from this friend later
-            if friend in friends:
-                friends.remove(friend)
+            friends_who_are_done.append(friend)
 
             # send done message if we don't have a lot of work left
-            if lsec < 4:
+            if lsec < 4 and not friend_in_need == -2:
                 comm.Send(done, dest = friend)
+                friends_who_know_im_done.append(friend)
 
             # don't send any work if the friend just sent that he's done - he'll ask again if he actually wants work
             # send half of the remaining work if there is enough left,
@@ -194,7 +196,10 @@ def k2_in_parallel(D,node_order,comm,rank,size,u=2):
 
     # send done signals toeverybody else
     for f in friends:
-        comm.Send(done, dest = f)
+        if f not in  friends_who_know_im_done:
+            comm.Send(done, dest = f)
+
+    friends = [friend for friend in friends if friend not in friends_who_are_done]
 
     # nodes that are done with work ask their neighbors for work units
     # you could receive up to np.floor(n/(2*size)) work units
@@ -253,41 +258,37 @@ if __name__ == "__main__":
     D = comm.bcast(D, root=0)
     node_order = comm.bcast(node_order, root = 0)
 
-    comm.barrier()
-    start = MPI.Wtime()
-    v1.k2_in_parallel(D,node_order,comm,rank,size,u=n-1)
-    comm.barrier()
-    end = MPI.Wtime()
-    if rank == 0:
-        timestoprint.append(end-start)
-        print "v1 complete"
+    #comm.barrier()
+    #start = MPI.Wtime()
+    #v1.k2_in_parallel(D,node_order,comm,rank,size,u=n-1)
+    #comm.barrier()
+    #end = MPI.Wtime()
+    #if rank == 0:
+        #timestoprint.append(end-start)
 
-    comm.barrier()
-    start = MPI.Wtime()
-    v2.k2_in_parallel(D,node_order,comm,rank,size,u=n-1)
-    comm.barrier()
-    end = MPI.Wtime()
-    if rank == 0:
-        timestoprint.append(end-start)
-        print "v2 complete"
+    #comm.barrier()
+    #start = MPI.Wtime()
+    #v2.k2_in_parallel(D,node_order,comm,rank,size,u=n-1)
+    #comm.barrier()
+    #end = MPI.Wtime()
+    #if rank == 0:
+        #timestoprint.append(end-start)
 
-    comm.barrier()
-    start = MPI.Wtime()
-    v3.k2_in_parallel(D,node_order,comm,rank,size,u=n-1)
-    comm.barrier()
-    end = MPI.Wtime()
-    if rank == 0:
-        timestoprint.append(end-start)
-        print "v3 complete"
+    #comm.barrier()
+    #start = MPI.Wtime()
+    #v3.k2_in_parallel(D,node_order,comm,rank,size,u=n-1)
+    #comm.barrier()
+    #end = MPI.Wtime()
+    #if rank == 0:
+        #timestoprint.append(end-start)
 
-    comm.barrier()
-    start = MPI.Wtime()
-    v4.k2_in_parallel(D,node_order,comm,rank,size,u=n-1)
-    comm.barrier()
-    end = MPI.Wtime()
-    if rank == 0:
-        timestoprint.append(end-start)
-        print "v4 complete"
+    #comm.barrier()
+    #start = MPI.Wtime()
+    #v4.k2_in_parallel(D,node_order,comm,rank,size,u=n-1)
+    #comm.barrier()
+    #end = MPI.Wtime()
+    #if rank == 0:
+        #timestoprint.append(end-start)
 
     comm.barrier()
     start = MPI.Wtime()
@@ -296,5 +297,4 @@ if __name__ == "__main__":
     end = MPI.Wtime()
     if rank == 0:
         timestoprint.append(end-start)
-        print "v5 complete"
         print timestoprint

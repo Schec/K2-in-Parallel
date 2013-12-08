@@ -6,9 +6,7 @@ import math
 import operator
 import time
 from mpi4py import MPI
-
-import jodys_serial_v2 as serialv
-import parallel_mpi_v2 as oldparallel
+import sys
 
 def vals_of_attributes(D,n):
     output = []
@@ -166,15 +164,21 @@ def k2_in_parallel(D,node_order,comm,rank,size,u=2):
 
 
 if __name__ == "__main__":
+
+    n = int(sys.argv[1])
+
+    np.random.seed(42)
+
     comm = MPI.COMM_WORLD
     rank = comm.Get_rank()
     size = comm.Get_size()
     #device = pycuda.autoinit.device.pci_bus_id()
-    #node = MPI.Get_processor_name()
-    
+    #node = MPI.Get_processor_name()  
+
     if rank == 0:
-        D = np.random.binomial(1,0.9,size=(1000,100))
-        node_order = list(range(100))
+        timestoprint = []
+        D = np.random.binomial(1,0.9,size=(100,n))
+        node_order = list(range(n))
     else:
         D = None
         node_order = None
@@ -184,16 +188,9 @@ if __name__ == "__main__":
 
     comm.barrier()
     start = MPI.Wtime()
-    k2_in_parallel(D,node_order,comm,rank,size,u=5)
+    k2_in_parallel(D,node_order,comm,rank,size,u=n-1)
     comm.barrier()
     end = MPI.Wtime()
     if rank == 0:
-        print "Parallel Computing Time: ", end-start
-
-    comm.barrier()
-    start = MPI.Wtime()
-    oldparallel.k2_in_parallel(D,node_order,comm,rank,size,u=5)
-    comm.barrier()
-    end = MPI.Wtime()
-    if rank == 0:
-        print "Old Parallel Computing Time: ", end-start
+        timestoprint.append(end-start)
+        print timestoprint

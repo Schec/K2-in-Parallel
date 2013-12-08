@@ -6,6 +6,7 @@ import math
 import operator
 import time
 from mpi4py import MPI
+import sys
 
 import jodys_serial_v2 as serialv
 
@@ -138,15 +139,21 @@ def k2_in_parallel(D,node_order,comm,rank,size,u=2):
 
 
 if __name__ == "__main__":
+
+    n = int(sys.argv[1])
+
+    np.random.seed(42)
+
     comm = MPI.COMM_WORLD
     rank = comm.Get_rank()
     size = comm.Get_size()
     #device = pycuda.autoinit.device.pci_bus_id()
-    #node = MPI.Get_processor_name()
-    
+    #node = MPI.Get_processor_name()  
+
     if rank == 0:
-        D = np.random.binomial(1,0.9,size=(1000,10))
-        node_order = list(range(10))
+        timestoprint = []
+        D = np.random.binomial(1,0.9,size=(100,n))
+        node_order = list(range(n))
     else:
         D = None
         node_order = None
@@ -156,13 +163,9 @@ if __name__ == "__main__":
 
     comm.barrier()
     start = MPI.Wtime()
-    k2_in_parallel(D,node_order,comm,rank,size,u=5)
+    k2_in_parallel(D,node_order,comm,rank,size,u=n-1)
     comm.barrier()
     end = MPI.Wtime()
     if rank == 0:
-        print "Parallel Computing Time: ", end-start
-
-        serial_start = time.time()
-        print serialv.k2(D,node_order, u=5)
-        serial_end = time.time()
-        print "Serial Computing Time: ", serial_end-serial_start
+        timestoprint.append(end-start)
+        print timestoprint

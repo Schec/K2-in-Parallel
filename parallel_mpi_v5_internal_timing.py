@@ -3,6 +3,7 @@ import numpy as np
 import itertools
 import pandas as pd
 import operator
+import time
 from mpi4py import MPI
 import sys
 import argparse
@@ -115,6 +116,12 @@ def parent_set(i, node_order, attribute_values, df, u=2):
 
 
 def k2_in_parallel(D, node_order, comm, rank, size, u=2):
+
+    selecting_job_time = 0
+    calculation_time = 0
+    communication_time = 0
+    tracking_time = 0
+
     status = MPI.Status()
     n = D.shape[1]
     assert len(node_order) == n, ("Node order is not correct length."
@@ -127,15 +134,16 @@ def k2_in_parallel(D, node_order, comm, rank, size, u=2):
     df = pd.DataFrame(D)
     parents = {}
 
-    #selecting_job_time = 0
-    #calculation_time = 0
-
+    a = time.time()
     all_i = find_all_jobs(np.arange(n), rank, size)
+    b = time.time()
+    selecting_job_time += b - a
 
+    a = time.time()
     friends = range(rank + 1, size) + range(rank)
     friend_in_need = np.array([-1], dtype=np.int32)
 
-    # this is the signal we'll send to let friends know that we don't have work
+    # this is the sign to send to friends to let them know we're near done
     done = np.array([-2], dtype=np.int32)
 
     lall = len(all_i)
@@ -143,83 +151,136 @@ def k2_in_parallel(D, node_order, comm, rank, size, u=2):
     friends_who_are_done = []
     friends_who_know_im_done = []
 
-    while lall > 0:
+    b = time.time()
+    selecting_job_time += b - a
 
-        # this needs to be non-blocking -- no pickle option available
+    firstchunk = all_i[0:int(3 / 4 * len(all_i))]
+    secondchunk = all_i[int(3 / 4 * len(all_i)):len(all_i)]
+
+    for i in firstchunk:
+        a = time.time()
+        parents[node_order[i]] = parent_set(
+            i, node_order, attribute_values, df, u)
+        b = time.time()
+        calculation_time += b - a
+
+    lsec = len(secondchunk)
+
+    while lsec > 0:
+
+        a = time.time()
+        # this needs to be non-blocking communication -- no pickle option
         req = comm.Irecv(friend_in_need, source=MPI.ANY_SOURCE)
         if req.Test(status=status) is False:
             req.Cancel()
+        b = time.time()
+        communication_time += b - a
 
         # deal with the friend in need
         if not friend_in_need == -1:
 
+            a = time.time()
             # identify the friend who sent the message
             if friend_in_need == -2:
                 friend = status.Get_source()
+
                 #print "friend in -2 part is ", friend
             else:
                 friend = friend_in_need
 
             friends_who_are_done.append(friend)
+            b = time.time()
+            tracking_time += b - a
 
             # send done message if we don't have a lot of work left
             if lall < 4 and not friend_in_need == -2:
+                a = time.time()
                 comm.Send(done, dest=friend)
+                b = time.time()
+                communication_time += b - a
+                a = time.time()
                 friends_who_know_im_done.append(friend)
+                b = time.time()
+                tracking_time += b - a
 
             # don't send any work if the friend just sent that he's done
             # send half of the remaining work if there is enough left,
-            if lall >= 4 and not friend_in_need == -2:
+            if lsec >= 4 and not friend_in_need == -2:
                 # build the message
-                a = list(all_i[int(np.ceil(1 / 2 * lall)):lall])
+                a = list(secondchunk[int(np.ceil(1 / 2 * lsec)):lsec])
                 # pad the message with zeros (for consistent-sized messages)
                 b = list(np.zeros(lsig - len(a)))
                 # send the message
+                a = time.time()
                 comm.Send(np.array(a + b, dtype=np.int32), dest=friend)
+                b = time.time()
+                communication_time += b - a
                 # update my own chunk of work
-                all_i = all_i[0:int(np.ceil(1 / 2 * lall))]
+                secondchunk = secondchunk[0:int(np.ceil(1 / 2 * lsec))]
 
             friend_in_need = np.array([-1], dtype=np.int32)
 
-        # choose the next element to calculate
-        i = all_i.pop(0)
+        #choose the next element to calculate
+        i = secondchunk.pop(0)
+        a = time.time()
         parents[node_order[i]] = parent_set(
             i, node_order, attribute_values, df, u)
+        b = time.time()
+        calculation_time += b - a
+        # update lsec to see if we should go again
+        lsec = len(secondchunk)
 
-        # update lall to see if we should go again
-        lall = len(all_i)
-
-    # send done signals to everybody else
+    # send done signals toeverybody else
+    a = time.time()
     for f in friends:
         if f not in friends_who_know_im_done:
-            #print "node ", rank, " sending ", done, " to ", f, " in bridge"
             comm.Send(done, dest=f)
+    b = time.time()
+    communication_time += b - a
 
+    a = time.time()
     friends = [bud for bud in friends if bud not in friends_who_are_done]
+    b = time.time()
+    tracking_time += b - a
 
-    # nodes that are done with work ask their neighbors for work units
+     # nodes that are done with work ask their neighbors for work units
     # you could receive up to np.floor(n/(2*size)) work units
+    signal = np.zeros(shape=lsig, dtype=np.int32)
 
     while(len(friends) > 0):
         destination = friends.pop(0)
         mess = np.array([rank], dtype=np.int32)
         signal = np.zeros(shape=lsig, dtype=np.int32)
         # check to see whether this node sent you a done message
+        a = time.time()
         req = comm.Irecv(signal, source=destination)
         if req.Test(status=status) is False:
             req.Cancel()
              # if not, send him your rank and hope for work back!
             comm.Send(mess, dest=destination)
             comm.Recv(signal, source=destination)
+        b = time.time()
+        communication_time += b - a
 
         # get any work from signal that exists
-        all_i = signal[signal > 0]
-        for i in all_i:
+        secondchunk = signal[signal > 0]
+        for i in secondchunk:
+            a = time.time()
             parents[node_order[i]] = parent_set(
                 i, node_order, attribute_values, df, u)
+            b = time.time()
+            calculation_time += b - a
 
     # sending parents back to node 0 for sorting and printing
+    a = time.time()
     p = comm.gather(parents, root=0)
+    b = time.time()
+    communication_time += b - a
+
+    print rank, " selecting ", selecting_job_time
+    print rank, " calculating ", calculation_time
+    print rank, " communicating ", communication_time
+    print rank, " tracking ", tracking_time
 
     if rank == 0:
     # gather returns a list - converting to a single dictionary
@@ -281,14 +342,10 @@ if __name__ == "__main__":
         node_order = list(range(n))
 
     elif args.D is not None:
-        if rank == 0:
-            print "Reading in array D"
         D = np.loadtxt(open(args.D))
         if args.node_order is not None:
             node_order = args.node_order
         else:
-            if rank == 0:
-                print "Determining node order"
             n = np.int32(D.shape[1])
             node_order = list(range(n))
 
@@ -297,13 +354,4 @@ if __name__ == "__main__":
             print "Incorrect usage. Use --help to display help."
         sys.exit()
 
-    if rank == 0:
-        print "Calculating Parent sets"
-    comm.barrier()
-    start = MPI.Wtime()
     parents = k2_in_parallel(D, node_order, comm, rank, size, u=u)
-    comm.barrier()
-    end = MPI.Wtime()
-    if rank == 0:
-        print "Parallel computing time", end - start
-        print parents

@@ -3,6 +3,7 @@ import numpy as np
 import itertools
 import pandas as pd
 import operator
+import time
 from mpi4py import MPI
 import sys
 import argparse
@@ -41,7 +42,9 @@ def f(i, pi, attribute_values, df):
     V_i = attribute_values[i]
     r_i = len(V_i)
 
+    #product = 1
     product = 0
+    #numerator = math.factorial(r_i - 1)
     numerator = np.sum([np.log(b) for b in range(1, r_i)])
 
     # special case: q_i = 0
@@ -79,9 +82,15 @@ def f(i, pi, attribute_values, df):
 
 
 def k2_in_parallel(D, node_order, comm, rank, size, u=2):
+
+    selecting_job_time = 0
+    calculation_time = 0
+    communication_time = 0
+    tracking_time = 0
+
     n = D.shape[1]
     assert len(node_order) == n, ("Node order is not correct length."
-        "  It should have length %r" % n)
+        " It should have length %r" % n)
     attribute_values = vals_of_attributes(D, n)
 
     df = pd.DataFrame(D)
@@ -93,19 +102,45 @@ def k2_in_parallel(D, node_order, comm, rank, size, u=2):
         status = MPI.Status()
 
         for i in range(1, size):
+            a = time.time()
             comm.send(i - 1, dest=i)
+            b = time.time()
+            communication_time += b - a
 
         for i in xrange(size - 1, n):
+            a = time.time()
             new_parents = comm.recv(source=MPI.ANY_SOURCE, status=status)
+            b = time.time()
+            communication_time += b - a
             parents.update(new_parents)
+            a = time.time()
             destin = status.Get_source()
+            b = time.time()
+            tracking_time += b - a
+            a = time.time()
             comm.send(i, dest=destin)
+            b = time.time()
+            communication_time += b - a
 
         for i in range(1, size):
+            a = time.time()
             new_parents = comm.recv(source=MPI.ANY_SOURCE, status=status)
+            b = time.time()
+            communication_time += b - a
             parents.update(new_parents)
+            a = time.time()
             destin = status.Get_source()
+            b = time.time()
+            tracking_time += b - a
+            a = time.time()
             comm.send(None, dest=destin)
+            b = time.time()
+            communication_time += b - a
+
+            print rank, " selecting ", selecting_job_time
+            print rank, " calculating ", calculation_time
+            print rank, " communicating ", communication_time
+            print rank, " tracking ", tracking_time
 
         return parents
 
@@ -113,12 +148,20 @@ def k2_in_parallel(D, node_order, comm, rank, size, u=2):
     else:
 
         while (True):
+            a = time.time()
             i = comm.recv(source=0)
+            b = time.time()
+            communication_time += b - a
 
             if i is None:
+                print rank, " selecting ", selecting_job_time
+                print rank, " calculating ", calculation_time
+                print rank, " communicating ", communication_time
+                print rank, " tracking ", tracking_time
                 return
 
             else:
+                a = time.time()
                 OKToProceed = False
                 pi = []
                 pred = node_order[0:i]
@@ -147,7 +190,12 @@ def k2_in_parallel(D, node_order, comm, rank, size, u=2):
                         OKToProceed = False
 
                 message = {node_order[i]: pi}
+                b = time.time()
+                calculation_time += b - a
+                a = time.time()
                 comm.send(message, dest=0)
+                b = time.time()
+                communication_time += b - a
 
 
 if __name__ == "__main__":
@@ -200,14 +248,10 @@ if __name__ == "__main__":
         node_order = list(range(n))
 
     elif args.D is not None:
-        if rank == 0:
-            print "Reading in array D"
         D = np.loadtxt(open(args.D))
         if args.node_order is not None:
             node_order = args.node_order
         else:
-            if rank == 0:
-                print "Determining node order"
             n = np.int32(D.shape[1])
             node_order = list(range(n))
 
@@ -216,13 +260,4 @@ if __name__ == "__main__":
             print "Incorrect usage. Use --help to display help."
         sys.exit()
 
-    if rank == 0:
-        print "Calculating Parent sets"
-    comm.barrier()
-    start = MPI.Wtime()
     parents = k2_in_parallel(D, node_order, comm, rank, size, u=u)
-    comm.barrier()
-    end = MPI.Wtime()
-    if rank == 0:
-        print "Parallel computing time", end - start
-        print parents

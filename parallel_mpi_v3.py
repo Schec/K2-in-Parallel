@@ -7,6 +7,7 @@ import operator
 import time
 from mpi4py import MPI
 import sys
+import argparse
 
 def vals_of_attributes(D,n):
     output = []
@@ -165,32 +166,62 @@ def k2_in_parallel(D,node_order,comm,rank,size,u=2):
 
 if __name__ == "__main__":
 
-    n = int(sys.argv[1])
 
-    np.random.seed(42)
+    parser = argparse.ArgumentParser(description = '''K2 In Serial:  Calculates the parent set for each node in your data file and returns a dictionary of the form
+                                                                                    {feature: [parent set]}.''')
+    parser.add_argument('-D', nargs='?', default = None, help='''Path to csc file containing a 0/1 array with m observations (rows) and n features (columns).  
+                                                                                                A value of 1 represents the presence of that feature in that observation. One of --random and -D 
+                                                                                                must be used.''')
+    parser.add_argument('--node_order', '-o', nargs='?',  type = list, default = None, help='''A list of integers containing the column order of features in your matrix.  
+                                                                                                                                                If not provided, order the features in accordance with their order in the file.''')
+    parser.add_argument('--random', '-r', action = "store_true", help='''Include this option to calculate parents for a random matrix.  If --random is included,
+                                                                                                                 -D and --node_order should be left out, and -m and -n can be included.   One of --random and -D 
+                                                                                                                must be used.''')
+    parser.add_argument('-n', nargs='?', type = int, default = '10', help='The number of features in a random matrix.  default is 10.  Only use with --random')
+    parser.add_argument('-m', nargs='?', type = int, default = '100',  help='The number of observations in a random matrix.  default is 100. only use with --random')
+    parser.add_argument('-u', nargs='?', type = int, default = 2, help='The maximum number of parents per feature.  Default is 2.  Must be less than number of features.')
+    args = parser.parse_args()
 
     comm = MPI.COMM_WORLD
     rank = comm.Get_rank()
     size = comm.Get_size()
-    #device = pycuda.autoinit.device.pci_bus_id()
-    #node = MPI.Get_processor_name()  
+
+    u = args.u
+
+    if args.random:
+        n = args.n
+        m = args.m
+        if rank == 0:
+            D = np.random.binomial(1,0.9,size=(m,n))
+        else:
+            D = None
+        D = comm.bcast(D, root=0)
+        node_order = list(range(n))
+
+    elif not args.D == None:
+        if rank == 0:
+            print "Reading in array D"
+        D = np.loadtxt(open(args.D))
+        if args.node_order != None:
+            node_order = args.node_order
+        else:
+            if rank == 0:
+                print "Determining node order"
+            n = np.int32(D.shape[1])
+            node_order = list(range(n))
+
+    else:
+        if rank == 0:
+            print "Incorrect usage. Use --help to display help."
+        sys.exit()
 
     if rank == 0:
-        timestoprint = []
-        D = np.random.binomial(1,0.9,size=(100,n))
-        node_order = list(range(n))
-    else:
-        D = None
-        node_order = None
-
-    D = comm.bcast(D, root=0)
-    node_order = comm.bcast(node_order, root = 0)
-
+        print "Calculating Parent sets"
     comm.barrier()
     start = MPI.Wtime()
-    k2_in_parallel(D,node_order,comm,rank,size,u=n-1)
+    parents = k2_in_parallel(D,node_order,comm,rank,size,u=u)
     comm.barrier()
     end = MPI.Wtime()
     if rank == 0:
-        timestoprint.append(end-start)
-        print timestoprint
+        print "Parallel computing time", end-start
+        print parents

@@ -5,7 +5,6 @@ import pandas as pd
 import math
 import operator
 import time
-from mpi4py import MPI
 import sys
 import argparse
 
@@ -18,7 +17,7 @@ def vals_of_attributes(D,n):
 def alpha(df, mask):
     _df = df
     for combo in mask:
-        _df = _df[_df[combo[0]] == combo[1]] 
+        _df = _df[_df[combo[0]] == combo[1]]  # I know there must be a way to speed this up - but i couldn't find it
     return len(_df)
 
 def f(i,pi,attribute_values,df):
@@ -79,15 +78,8 @@ def f(i,pi,attribute_values,df):
         product = product + numerator - denominator + inner_product
     return product
 
-def my_job(i,rank,size):
-    flag = False
-    if np.floor(i/size) % 2 == 0 and i%size == rank:
-        flag = True
-    if np.floor(i/size) % 2 == 1 and size - 1 - i%size  == rank:
-        flag = True
-    return flag
 
-def k2_in_parallel(D,node_order,comm,rank,size,u=2):
+def k2(D,node_order,u=2):
     n = D.shape[1]
     assert len(node_order) == n, "Node order is not correct length.  It should have length %r" % n
     m = D.shape[0]
@@ -97,72 +89,40 @@ def k2_in_parallel(D,node_order,comm,rank,size,u=2):
     OKToProceed = False
     parents = {}
 
-    #selecting_job_time = 0
-    #calculation_time = 0
-
     for i in xrange(n):
-        #a = time.time()
-        #mjob = my_job(i,rank,size)
-        #b = time.time()
-        #selecting_job_time += b-a
-        if my_job(i,rank,size) == True:
-            #a = time.time()
-            OKToProceed = False
-            pi = []
-            pred = node_order[0:i]
-            P_old = f(node_order[i],pi,attribute_values,df)
-            if len(pred) > 0:
-                OKToProceed = True
-            while (OKToProceed == True and len(pi) < u):
-                iters = [item for item in pred if item not in pi]
-                if len(iters) > 0:
-                    f_to_max = {};
-                    for z_hat in iters:
-                        f_to_max[z_hat] = f(node_order[i],pi+[z_hat],attribute_values,df)
-                    z = max(f_to_max.iteritems(), key=operator.itemgetter(1))[0]
-                    P_new = f_to_max[z]
-                    if P_new > P_old:
-                        P_old = P_new
-                        pi = pi+[z]
-                    else:
-                        OKToProceed = False
+        OKToProceed = False
+        pi = []
+        pred = node_order[0:i]
+        P_old = f(node_order[i],pi,attribute_values,df)
+        if len(pred) > 0:
+            OKToProceed = True
+        while (OKToProceed == True and len(pi) < u):
+            iters = [item for item in pred if item not in pi]
+            if len(iters) > 0:
+                f_to_max = {};
+                for z_hat in iters:
+                    f_to_max[z_hat] = f(node_order[i],pi+[z_hat],attribute_values,df)
+                z = max(f_to_max.iteritems(), key=operator.itemgetter(1))[0]
+                P_new = f_to_max[z]
+                if P_new > P_old:
+                    P_old = P_new
+                    pi = pi+[z]
                 else:
                     OKToProceed = False
-            parents[node_order[i]] = pi
-            #b = time.time()
-            #calculation_time += b-a
+            else:
+                OKToProceed = False
+        parents[node_order[i]] = pi
 
-    # sending parents back to node 0 for sorting and printing
-    #print "node ", rank, " spent ", selecting_job_time, " seconds selecting jobs"
-    #print "node ", rank, " spent ", calculation_time, " seconds calculating parent sets"
-
-    #comm.barrier()
-    #a = MPI.Wtime()
-    p = comm.gather(parents, root = 0)
-    #comm.barrier()
-    #b = MPI.Wtime()
-
-    if rank == 0:
-        #print "nodes collectively spent ", b-a, " seconds gathering the output"
-    # gather returns a list - converting to a single dictionary
-        parents = {}
-
-        #a = time.time()
-        for i in range(len(p)):
-            parents.update(p[i])
-        #b = time.time()
-        #print "node 0 spent ", b-a, " seconds updating the dictionaries"
-
-        #print parents
-        return parents
+    #print parents
     
+    return parents
 
 
-if __name__ == "__main__":
+if __name__ == '__main__':
 
 
     parser = argparse.ArgumentParser(description = '''K2 In Serial:  Calculates the parent set for each node in your data file and returns a dictionary of the form
-                                                                                    {feature: [parent set]}.''')
+                                                                                    {feature: [parent set]}.''', usage='python %(prog)s [options]')
     parser.add_argument('-D', nargs='?', default = None, help='''Path to csc file containing a 0/1 array with m observations (rows) and n features (columns).  
                                                                                                 A value of 1 represents the presence of that feature in that observation. One of --random and -D 
                                                                                                 must be used.''')
@@ -176,46 +136,32 @@ if __name__ == "__main__":
     parser.add_argument('-u', nargs='?', type = int, default = 2, help='The maximum number of parents per feature.  Default is 2.  Must be less than number of features.')
     args = parser.parse_args()
 
-    comm = MPI.COMM_WORLD
-    rank = comm.Get_rank()
-    size = comm.Get_size()
-
     u = args.u
 
     if args.random:
         n = args.n
         m = args.m
-        if rank == 0:
-            D = np.random.binomial(1,0.9,size=(m,n))
-        else:
-            D = None
-        D = comm.bcast(D, root=0)
+        D = np.random.binomial(1,0.9,size=(m,n))
         node_order = list(range(n))
 
     elif not args.D == None:
-        if rank == 0:
-            print "Reading in array D"
+        print "Reading in array D"
         D = np.loadtxt(open(args.D))
         if args.node_order != None:
             node_order = args.node_order
         else:
-            if rank == 0:
-                print "Determining node order"
+            print "Determining node order"
             n = np.int32(D.shape[1])
             node_order = list(range(n))
 
     else:
-        if rank == 0:
-            print "Incorrect usage. Use --help to display help."
+        print "Incorrect usage. Use --help to display help"
         sys.exit()
+        
 
-    if rank == 0:
-        print "Calculating Parent sets"
-    comm.barrier()
-    start = MPI.Wtime()
-    parents = k2_in_parallel(D,node_order,comm,rank,size,u=u)
-    comm.barrier()
-    end = MPI.Wtime()
-    if rank == 0:
-        print "Parallel computing time", end-start
-        print parents
+    print "Calculating Parent sets"
+    start = time.time()
+    parents = k2(D,node_order,u=u)
+    end = time.time()
+    print "Serial computing time", end-start
+    print parents

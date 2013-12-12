@@ -1,1 +1,162 @@
-Hello, World!
+--------------
+K2 in Parallel
+--------------
+Final Project for Harvard Computer Science 205 by Aymen Jaffry and Jody Schechter
+git: https://github.com/Schec/K2-in-Parallel.git
+public website:  http://cs205k2project.wordpress.com/
+
+
+
+Contents
+
+[1]  k2_serial.py - serial implementation of the K2 algorithm
+[2]  k2_cuda.py - cuda implementation of the K2 algorithm
+[3]  parallel_mpi_v1.py - independent-node implementation of the K2 algorithm with send/recv
+[4]  parallel_mpi_v2.py - independent-node implementation of the K2 algorithm with gather
+[5]  parallel_mpi_v3.py - master-slave implementation of the K2 algorithm
+[6]  parallel_mpi_v4.py - dynamic load-balancing implementation of the K2 algorithm
+[7]  parallel_mpi_v5.py - hybrid of v2 and v4
+[8]  parallel_mpi_and_cuda.py - (final) implementation of K2 algorithm utilizing MPI and CUDA
+
+
+
+System Requirements
+
+(Software)
+[A]  mpiexec (OpenRTE) 1.4.2 - http://www.open-mpi.org
+[B]  python 2.7.3 (with standard libraries) - http://www.python.org/download/releases/2.7.3/
+[C]  pycuda 2012.1 - https://launchpad.net/ubuntu/+source/pycuda/2012.1-1ubuntu2
+[D]  numpy 1.6.2 - http://www.numpy.org/
+[E]  pandas 0.7.3 - http://pandas.pydata.org/getpandas.html
+(Hardware)
+[F]  NVidia c2070 (or newer)
+
+***** Note that not all of the scripts in Contents require all of the software and hardware in System Requirements.
+This dictionary lays out the requirements of each:
+{1: [B, D, E], 2: [B, C, D, E, F], 3: [A, B, D, E], 4: [A, B, D, E], 5: [A, B, D, E], 6: [A, B, D, E], 7: [A, B, D, E], 8: [A, B, C, D, E, F]}
+
+
+
+Usage
+
+
+
+Functions
+
+[1]  k2_serial.py
+
+    vals_of_attributes(D, n)
+        Requires:
+            D - a numpy matrix
+            n - the number of columns in D
+        Returns:
+            a list of lists of the unique values that appear in each column of D
+                For binomial matrices, the sublists are all either [0], [0,1], or [1].
+
+    alpha(df, mask)
+        Requires:
+            df - a pandas dataframe (the dataframe version of D)
+            mask - a list of lists, where each inner list has a [feature index, value]
+        Returns:
+            the number of rows of df that have every feature in mask instantiated as the paired value
+
+    f(i, pi, attribute_values, df)
+        Requires:
+            i - feature index
+            pi - potential parent set
+            attribute_values - the list of lists calculated by vals_of_attributes
+            df - a pandas dataframe (the dataframe version of D)
+        Returns:
+            the probability that pi is the parent set of i
+
+    k2(D, node_order, u=2)
+        Requires:
+            D - a numpy matrix
+            node_order - order of features to consider when creating predicate sets
+            u - maximum number of parents to find for each feature
+        Returns:
+            dictionary where keys are features and values are lists of parents
+            e.g. {1:[], 2:[1], 3:[2,1]}
+
+[2]  k2_cuda.py
+
+[3]  parallel_mpi_v1.py
+
+    vals_of_attributes(D, n)
+        same as [1] k2_serial.py
+
+    alpha(df, mask)
+        same as [1] k2_serial.py
+
+    f(i, pi, attribute_values, df)
+        same as [1] k2_serial.py
+
+    my_job(i, rank, size):
+        Requires:
+            i - integer value (for last unit of work completed)
+            rank - the rank of the process in comm
+            size - the number of processes in comm
+        Returns:
+            the next i for which this rank is responsible
+
+    k2_in_parallel(D, node_order, comm, rank, size, u=2):
+        Requires:
+            D - a numpy matrix
+            node_order - order of features to consider when creating predicate sets
+            comm - object of the MPI Comm class (MPI.COMM_WORLD)
+            rank - the rank of the process in comm
+            size - number of processes in comm
+            u - maximum number of parents to find for each feature
+        Returns:
+            dictionary where keys are features and values are lists of parents
+            e.g. {1:[], 2:[1], 3:[2,1]}
+
+[4]  parallel_mpi_v2.py
+
+    same functions as [3] parallel_mpi_v1
+    differences are within k2_in_parallel function
+
+[5]  parallel_mpi_v3.py
+
+    same functions as [3] parallel_mpi_v1; but does not contain my_job
+    differences are within the k2_in_parallel function
+
+[6]  parallel_mpi_v4.py
+
+    vals_of_attributes(D, n)
+        same as [1] k2_serial.py
+
+    alpha(df, mask)
+        same as [1] k2_serial.py
+
+    f(i, pi, attribute_values, df)
+        same as [1] k2_serial.py
+
+    find_all_jobs(i, rank, size)
+        Requires:
+            i - a numpy array of integers
+            rank - the rank of the process in comm
+            size - the number of processes in comm
+        Returns:
+            a numpy array of integers for which this rank is responsible
+
+    parent_set(i, node_order, attribute_values, df, u=2)
+        Requires:
+            i - feature index
+            node_order - list of integers demonstrating order of features
+            attribute_values - the list of lists calculated by vals_of_attributes.
+            df - a pandas dataframe contianing the matrix D
+            u - the maximum number of parents to find for each feature
+        Returns:
+            a list of parents for the feature i
+
+    k2_in_parallel(D, node_order, comm, rank, size, u=2)
+        same requirements and output as as [3] parallel_mpi_v1, but different implementation
+        this function calls on parent_set, which now contains much of the code that exists in k2_in_parallel functions in [3], [4], and [5]
+
+[7]  parallel_mpi_v5.py
+
+    same functions as [6] parallel_mpi_v4
+    differences are within the k2_in_parallel function
+
+[8]  parallel_mpi_and_cuda.py

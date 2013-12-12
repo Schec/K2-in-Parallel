@@ -135,7 +135,7 @@ def k2_in_parallel(D, node_order, comm, rank, size, u=2):
     parents = {}
 
     a = time.time()
-    all_i = find_all_jobs(np.arange(n), rank, size)
+    all_i = find_all_jobs(np.arange(n, dtype=np.int32), rank, size)
     b = time.time()
     selecting_job_time += b - a
 
@@ -146,13 +146,11 @@ def k2_in_parallel(D, node_order, comm, rank, size, u=2):
     # this is the sign to send to friends to let them know we're near done
     done = np.array([-2], dtype=np.int32)
 
-    lall = len(all_i)
-
     friends_who_are_done = []
     friends_who_know_im_done = []
 
     b = time.time()
-    selecting_job_time += b - a
+    tracking_time += b - a
 
     firstchunk = all_i[0:int(3 / 4 * len(all_i))]
     secondchunk = all_i[int(3 / 4 * len(all_i)):len(all_i)]
@@ -183,17 +181,15 @@ def k2_in_parallel(D, node_order, comm, rank, size, u=2):
             # identify the friend who sent the message
             if friend_in_need == -2:
                 friend = status.Get_source()
-
-                #print "friend in -2 part is ", friend
             else:
-                friend = friend_in_need
+                friend = friend_in_need[0]
 
             friends_who_are_done.append(friend)
             b = time.time()
             tracking_time += b - a
 
             # send done message if we don't have a lot of work left
-            if lall < 4 and not friend_in_need == -2:
+            if lsec < 4 and friend not in friends_who_know_im_done:
                 a = time.time()
                 comm.Send(done, dest=friend)
                 b = time.time()
@@ -207,34 +203,43 @@ def k2_in_parallel(D, node_order, comm, rank, size, u=2):
             # send half of the remaining work if there is enough left,
             if lsec >= 4 and not friend_in_need == -2:
                 # build the message
-                a = list(secondchunk[int(np.ceil(1 / 2 * lsec)):lsec])
+                mess = secondchunk[int(np.ceil(1 / 2 * lsec)):lsec]
+
                 # pad the message with zeros (for consistent-sized messages)
-                b = list(np.zeros(lsig - len(a)))
+                pad = np.zeros(lsig - len(mess), dtype=np.int32)
+                mess = np.concatenate((mess, pad), axis=1)
+
                 # send the message
                 a = time.time()
-                comm.Send(np.array(a + b, dtype=np.int32), dest=friend)
+                comm.Send(mess, dest=friend)
                 b = time.time()
                 communication_time += b - a
+
                 # update my own chunk of work
                 secondchunk = secondchunk[0:int(np.ceil(1 / 2 * lsec))]
 
+                # update length of chunk of work
+                lsec = len(secondchunk)
+
             friend_in_need = np.array([-1], dtype=np.int32)
 
-        #choose the next element to calculate
-        i = secondchunk.pop(0)
-        a = time.time()
-        parents[node_order[i]] = parent_set(
-            i, node_order, attribute_values, df, u)
-        b = time.time()
-        calculation_time += b - a
-        # update lsec to see if we should go again
-        lsec = len(secondchunk)
+        # (bottleneck fix) calculate only if friend_in_need == -1
+        else:
+            i = secondchunk.pop(0)
+            a = time.time()
+            parents[node_order[i]] = parent_set(
+                i, node_order, attribute_values, df, u)
+            b = time.time()
+            calculation_time += b - a
 
-    # send done signals toeverybody else
+            # update lsec to see if we should go again
+            lsec = lsec - 1
+
+    # send done signals to everybody else
     a = time.time()
     for f in friends:
         if f not in friends_who_know_im_done:
-            comm.Send(done, dest=f)
+            comm.Isend(done, dest=f)
     b = time.time()
     communication_time += b - a
 
@@ -243,14 +248,16 @@ def k2_in_parallel(D, node_order, comm, rank, size, u=2):
     b = time.time()
     tracking_time += b - a
 
-     # nodes that are done with work ask their neighbors for work units
+    # nodes that are done with work ask their neighbors for work units
     # you could receive up to np.floor(n/(2*size)) work units
-    signal = np.zeros(shape=lsig, dtype=np.int32)
+
+    status = MPI.Status()
 
     while(len(friends) > 0):
         destination = friends.pop(0)
         mess = np.array([rank], dtype=np.int32)
         signal = np.zeros(shape=lsig, dtype=np.int32)
+
         # check to see whether this node sent you a done message
         a = time.time()
         req = comm.Irecv(signal, source=destination)
@@ -289,7 +296,6 @@ def k2_in_parallel(D, node_order, comm, rank, size, u=2):
         for i in range(len(p)):
             parents.update(p[i])
 
-        #print parents
         return parents
 
 if __name__ == "__main__":
@@ -354,4 +360,10 @@ if __name__ == "__main__":
             print "Incorrect usage. Use --help to display help."
         sys.exit()
 
+    comm.barrier()
+    start = MPI.Wtime()
     parents = k2_in_parallel(D, node_order, comm, rank, size, u=u)
+    comm.barrier()
+    end = MPI.Wtime()
+
+    print end - start

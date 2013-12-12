@@ -260,4 +260,10 @@ if __name__ == "__main__":
             print "Incorrect usage. Use --help to display help."
         sys.exit()
 
+    comm.barrier()
+    start = MPI.Wtime()
     parents = k2_in_parallel(D, node_order, comm, rank, size, u=u)
+    comm.barrier()
+    end = MPI.Wtime()
+
+    print end - start

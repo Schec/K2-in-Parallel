@@ -159,7 +159,7 @@ def k2_in_parallel(D, node_order, comm, rank, size, u=2):
     friends_who_know_im_done = []
 
     b = time.time()
-    selecting_job_time += b - a
+    tracking_time += b - a
 
     while lall > 0:
 
@@ -240,7 +240,6 @@ def k2_in_parallel(D, node_order, comm, rank, size, u=2):
     a = time.time()
     for f in friends:
         if f not in friends_who_know_im_done:
-            print rank, "sending done to", f
             comm.Isend(done, dest=f)
     b = time.time()
     communication_time += b - a
@@ -315,7 +314,6 @@ def k2_in_parallel(D, node_order, comm, rank, size, u=2):
         for i in range(len(p)):
             parents.update(p[i])
 
-        #print parents
         return parents
 
 if __name__ == "__main__":
@@ -329,24 +327,24 @@ if __name__ == "__main__":
          that observation. One of --random and -D must be used.''')
     parser.add_argument('--node_order', '-o', nargs='?', type=list,
         default=None, help='''A list of integers containing the column order
-        of features in your matrix.  If not provided, order the features in
-        accordance with their order in the file.''')
+         of features in your matrix.  If not provided, order the features in
+         accordance with their order in the file.''')
     parser.add_argument('--random', '-r', action="store_true",
         help='''Include this option to calculate parents for a random matrix.
-        If --random is included, -D and --node_order should be left out, and
-        -m, --seed, and -n can be included.   One of --random and -D ust be
-        used.''')
+         If --random is included, -D and --node_order should be left out, and
+         -m, --seed, and -n can be included.   One of --random and -D ust be
+         used.''')
     parser.add_argument('--seed', nargs='?', type=int, default=None,
-            help='The seed for the random matrix.  Only use with --random')
+        help='The seed for the random matrix.  Only use with --random')
     parser.add_argument('-n', nargs='?', type=int, default='10',
-            help='''The number of features in a random matrix.
-            Default is 10.  Only use with --random''')
+        help='''The number of features in a random matrix.
+         Default is 10.  Only use with --random''')
     parser.add_argument('-m', nargs='?', type=int, default='100',
         help='''The number of observations in a random matrix.
-        Default is 100. Only use with --random''')
+         Default is 100. Only use with --random''')
     parser.add_argument('-u', nargs='?', type=int, default=2,
         help='''The maximum number of parents per feature.  Default is 2.
-                Must be less than number of features.''')
+         Must be less than number of features.''')
     args = parser.parse_args()
 
     comm = MPI.COMM_WORLD
@@ -380,4 +378,10 @@ if __name__ == "__main__":
             print "Incorrect usage. Use --help to display help."
         sys.exit()
 
+    comm.barrier()
+    start = MPI.Wtime()
     parents = k2_in_parallel(D, node_order, comm, rank, size, u=u)
+    comm.barrier()
+    end = MPI.Wtime()
+
+    print end - start

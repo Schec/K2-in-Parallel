@@ -92,19 +92,19 @@ def my_job(i, rank, size):
 def k2_in_parallel(D, node_order, comm, rank, size, u=2):
     n = D.shape[1]
     assert len(node_order) == n, ("Node order is not correct length.  "
-                                                    "It should have length %r" % n)
-    attribute_values = vals_of_attributes(D,n)
+                                                "It should have length %r" % n)
+    attribute_values = vals_of_attributes(D, n)
 
     df = pd.DataFrame(D)
     OKToProceed = False
     parents = {}
 
     for i in xrange(n):
-        if my_job(i,rank,size) == True:
+        if my_job(i, rank, size) == True:
             OKToProceed = False
             pi = []
             pred = node_order[0:i]
-            P_old = f(node_order[i],pi,attribute_values,df)
+            P_old = f(node_order[i], pi, attribute_values, df)
             if len(pred) > 0:
                 OKToProceed = True
             while (OKToProceed == True and len(pi) < u):
@@ -189,14 +189,14 @@ if __name__ == "__main__":
         node_order = list(range(n))
 
     elif not args.D == None:
-        if rank == 0:
-            print "Reading in array D"
+        #if rank == 0:
+            # "Reading in array D"
         D = np.loadtxt(open(args.D))
         if args.node_order != None:
             node_order = args.node_order
         else:
-            if rank == 0:
-                print "Determining node order"
+            #if rank == 0:
+                #print "Determining node order"
             n = np.int32(D.shape[1])
             node_order = list(range(n))
 
@@ -205,13 +205,14 @@ if __name__ == "__main__":
             print "Incorrect usage. Use --help to display help."
         sys.exit()
 
-    if rank == 0:
-        print "Calculating Parent sets"
+    #if rank == 0:
+        #print "Calculating Parent sets"
     comm.barrier()
     start = MPI.Wtime()
     parents = k2_in_parallel(D,node_order,comm,rank,size,u=u)
     comm.barrier()
     end = MPI.Wtime()
     if rank == 0:
-        print "Parallel computing time", end-start
-        print parents
+        #print "Parallel computing time", end-start
+        #print parents
+        print "V1", n, m, size, end-start

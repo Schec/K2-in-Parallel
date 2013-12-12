@@ -130,7 +130,7 @@ def k2_in_parallel(D, node_order, comm, rank, size, u=2):
     #selecting_job_time = 0
     #calculation_time = 0
 
-    all_i = find_all_jobs(np.arange(n), rank, size)
+    all_i = find_all_jobs(np.arange(n, dtype=np.int32), rank, size)
 
     friends = range(rank + 1, size) + range(rank)
     friend_in_need = np.array([-1], dtype=np.int32)
@@ -156,43 +156,51 @@ def k2_in_parallel(D, node_order, comm, rank, size, u=2):
             # identify the friend who sent the message
             if friend_in_need == -2:
                 friend = status.Get_source()
-                #print "friend in -2 part is ", friend
             else:
-                friend = friend_in_need
+                friend = friend_in_need[0]
 
             friends_who_are_done.append(friend)
 
             # send done message if we don't have a lot of work left
-            if lall < 4 and not friend_in_need == -2:
-                comm.Send(done, dest=friend)
+            if lall < 4 and friend not in friends_who_know_im_done:
+                comm.Isend(done, dest=friend)
                 friends_who_know_im_done.append(friend)
 
             # don't send any work if the friend just sent that he's done
             # send half of the remaining work if there is enough left,
             if lall >= 4 and not friend_in_need == -2:
+
                 # build the message
-                a = list(all_i[int(np.ceil(1 / 2 * lall)):lall])
+                mess = all_i[int(np.ceil(1 / 2 * lall)):lall]
+
                 # pad the message with zeros (for consistent-sized messages)
-                b = list(np.zeros(lsig - len(a)))
+                pad = np.zeros(lsig - len(mess), dtype=np.int32)
+                mess = np.concatenate((mess, pad), axis=1)
+
                 # send the message
-                comm.Send(np.array(a + b, dtype=np.int32), dest=friend)
+                comm.Send(mess, dest=friend)
+
                 # update my own chunk of work
                 all_i = all_i[0:int(np.ceil(1 / 2 * lall))]
 
+                # update length of chunk of work
+                lall = len(all_i)
+
             friend_in_need = np.array([-1], dtype=np.int32)
 
-        # choose the next element to calculate
-        i = all_i.pop(0)
-        parents[node_order[i]] = parent_set(
-            i, node_order, attribute_values, df, u)
+        # (bottleneck fix) calculate only if friend_in_need == -1
+        else:
+            # choose the next element to calculate
+            i = all_i.pop(0)
+            parents[node_order[i]] = parent_set(
+                i, node_order, attribute_values, df, u)
 
-        # update lall to see if we should go again
-        lall = len(all_i)
+            # update length of work
+            lall = lall - 1
 
     # send done signals to everybody else
     for f in friends:
         if f not in friends_who_know_im_done:
-            #print "node ", rank, " sending ", done, " to ", f, " in bridge"
             comm.Send(done, dest=f)
 
     friends = [bud for bud in friends if bud not in friends_who_are_done]
@@ -200,10 +208,13 @@ def k2_in_parallel(D, node_order, comm, rank, size, u=2):
     # nodes that are done with work ask their neighbors for work units
     # you could receive up to np.floor(n/(2*size)) work units
 
+    status = MPI.Status()
+
     while(len(friends) > 0):
         destination = friends.pop(0)
         mess = np.array([rank], dtype=np.int32)
         signal = np.zeros(shape=lsig, dtype=np.int32)
+
         # check to see whether this node sent you a done message
         req = comm.Irecv(signal, source=destination)
         if req.Test(status=status) is False:
@@ -228,7 +239,6 @@ def k2_in_parallel(D, node_order, comm, rank, size, u=2):
         for i in range(len(p)):
             parents.update(p[i])
 
-        #print parents
         return parents
 
 if __name__ == "__main__":
@@ -280,15 +290,15 @@ if __name__ == "__main__":
         D = comm.bcast(D, root=0)
         node_order = list(range(n))
 
-    elif args.D is not None:
-        if rank == 0:
-            print "Reading in array D"
+    elif not args.D == None:
+        #if rank == 0:
+            # "Reading in array D"
         D = np.loadtxt(open(args.D))
-        if args.node_order is not None:
+        if args.node_order != None:
             node_order = args.node_order
         else:
-            if rank == 0:
-                print "Determining node order"
+            #if rank == 0:
+                #print "Determining node order"
             n = np.int32(D.shape[1])
             node_order = list(range(n))
 
@@ -297,13 +307,14 @@ if __name__ == "__main__":
             print "Incorrect usage. Use --help to display help."
         sys.exit()
 
-    if rank == 0:
-        print "Calculating Parent sets"
+    #if rank == 0:
+        #print "Calculating Parent sets"
     comm.barrier()
     start = MPI.Wtime()
-    parents = k2_in_parallel(D, node_order, comm, rank, size, u=u)
+    parents = k2_in_parallel(D,node_order,comm,rank,size,u=u)
     comm.barrier()
     end = MPI.Wtime()
     if rank == 0:
-        print "Parallel computing time", end - start
-        print parents
+        #print "Parallel computing time", end-start
+        #print parents
+        print "V4", n, m, size, end-start

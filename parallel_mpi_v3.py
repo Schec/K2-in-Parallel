@@ -199,15 +199,15 @@ if __name__ == "__main__":
         D = comm.bcast(D, root=0)
         node_order = list(range(n))
 
-    elif args.D is not None:
-        if rank == 0:
-            print "Reading in array D"
+    elif not args.D == None:
+        #if rank == 0:
+            # "Reading in array D"
         D = np.loadtxt(open(args.D))
-        if args.node_order is not None:
+        if args.node_order != None:
             node_order = args.node_order
         else:
-            if rank == 0:
-                print "Determining node order"
+            #if rank == 0:
+                #print "Determining node order"
             n = np.int32(D.shape[1])
             node_order = list(range(n))
 
@@ -216,13 +216,14 @@ if __name__ == "__main__":
             print "Incorrect usage. Use --help to display help."
         sys.exit()
 
-    if rank == 0:
-        print "Calculating Parent sets"
+    #if rank == 0:
+        #print "Calculating Parent sets"
     comm.barrier()
     start = MPI.Wtime()
-    parents = k2_in_parallel(D, node_order, comm, rank, size, u=u)
+    parents = k2_in_parallel(D,node_order,comm,rank,size,u=u)
     comm.barrier()
     end = MPI.Wtime()
     if rank == 0:
-        print "Parallel computing time", end - start
-        print parents
+        #print "Parallel computing time", end-start
+        #print parents
+        print "V3", n, m, size, end-start

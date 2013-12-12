@@ -121,6 +121,13 @@ def k2_in_parallel(D, node_order, comm, rank, size, u=2):
     calculation_time = 0
     communication_time = 0
     tracking_time = 0
+    b1 = 0
+    b2 = 0
+    b3 = 0
+    b4 = 0
+    b5 = 0
+    b6 = 0
+    b7 = 0
 
     status = MPI.Status()
     n = D.shape[1]
@@ -135,7 +142,7 @@ def k2_in_parallel(D, node_order, comm, rank, size, u=2):
     parents = {}
 
     a = time.time()
-    all_i = find_all_jobs(np.arange(n), rank, size)
+    all_i = find_all_jobs(np.arange(n, dtype=np.int32), rank, size)
     b = time.time()
     selecting_job_time += b - a
 
@@ -163,6 +170,7 @@ def k2_in_parallel(D, node_order, comm, rank, size, u=2):
             req.Cancel()
         b = time.time()
         communication_time += b - a
+        b1 += b - a
         #else:
             #print "node ", rank, " received ", friend_in_need, " in part 1"
 
@@ -173,21 +181,23 @@ def k2_in_parallel(D, node_order, comm, rank, size, u=2):
             # identify the friend who sent the message
             if friend_in_need == -2:
                 friend = status.Get_source()
-
+                print rank, "received -2 from", friend
                 #print "friend in -2 part is ", friend
             else:
-                friend = friend_in_need
+                friend = friend_in_need[0]
 
             friends_who_are_done.append(friend)
             b = time.time()
             tracking_time += b - a
 
             # send done message if we don't have a lot of work left
-            if lall < 4 and not friend_in_need == -2:
+            if lall < 4 and friend not in friends_who_know_im_done:
+                print rank, "sending done to", friend
                 a = time.time()
                 comm.Send(done, dest=friend)
                 b = time.time()
                 communication_time += b - a
+                b2 += b - a
                 a = time.time()
                 friends_who_know_im_done.append(friend)
                 b = time.time()
@@ -196,38 +206,48 @@ def k2_in_parallel(D, node_order, comm, rank, size, u=2):
             # don't send any work if the friend just sent that he's done
             # send half of the remaining work if there is enough left,
             if lall >= 4 and not friend_in_need == -2:
+                print rank, "knows he has to share with", friend
                 # build the message
-                a = list(all_i[int(np.ceil(1 / 2 * lall)):lall])
+                mess = all_i[int(np.ceil(1 / 2 * lall)):lall]
                 # pad the message with zeros (for consistent-sized messages)
-                b = list(np.zeros(lsig - len(a)))
+                pad = np.zeros(lsig - len(mess), dtype=np.int32)
+                mess = np.concatenate((mess, pad), axis=1)
                 # send the message
                 a = time.time()
-                comm.Send(np.array(a + b, dtype=np.int32), dest=friend)
+                print rank, "sending", mess, mess.shape, "to", friend
+                comm.Send(mess, dest=friend)
                 b = time.time()
                 communication_time += b - a
+                b3 += b - a
                 # update my own chunk of work
                 all_i = all_i[0:int(np.ceil(1 / 2 * lall))]
+                # update length of chunk of work
+                lall = len(all_i)
 
             friend_in_need = np.array([-1], dtype=np.int32)
 
-        # choose the next element to calculate
-        i = all_i.pop(0)
-        a = time.time()
-        parents[node_order[i]] = parent_set(
-            i, node_order, attribute_values, df, u)
-        b = time.time()
-        calculation_time += b - a
-        # update lall to see if we should go again
-        lall = len(all_i)
+        # attempt to reduce bottleneck: calculate only if friend_in_need == -1
+        else:
+            # choose the next element to calculate
+            i = all_i.pop(0)
+            a = time.time()
+            parents[node_order[i]] = parent_set(
+                i, node_order, attribute_values, df, u)
+            b = time.time()
+            calculation_time += b - a
+
+            # update lall to see if we should go again
+            lall = lall -1
 
     # send done signals to everybody else
     a = time.time()
     for f in friends:
         if f not in friends_who_know_im_done:
-            #print "node ", rank, " sending ", done, " to ", f, " in bridge"
-            comm.Send(done, dest=f)
+            print rank, "sending done to", f
+            comm.Isend(done, dest=f)
     b = time.time()
     communication_time += b - a
+    b4 += b - a
 
     a = time.time()
     friends = [bud for bud in friends if bud not in friends_who_are_done]
@@ -237,19 +257,32 @@ def k2_in_parallel(D, node_order, comm, rank, size, u=2):
     # nodes that are done with work ask their neighbors for work units
     # you could receive up to np.floor(n/(2*size)) work units
 
+    status = MPI.Status()
+
     while(len(friends) > 0):
         destination = friends.pop(0)
+        #status2.Set_source(destination)
         mess = np.array([rank], dtype=np.int32)
         signal = np.zeros(shape=lsig, dtype=np.int32)
         # check to see whether this node sent you a done message
         a = time.time()
+        a_2 = time.time()
         req = comm.Irecv(signal, source=destination)
-        if req.Test(status=status) is False:
+        statvar = req.Test(status=status)
+        if statvar is False:
             req.Cancel()
+        b_2 = time.time()
+        b5 += b_2 - a_2
             # if not, send him your rank and hope for work back!
-            #sending rank as message eliminates need for Get_source()
+        if statvar is False:
+            a_2 = time.time()
+            print rank, "sending", mess, "to", destination
             comm.Send(mess, dest=destination)
+            print rank, "trying to receive", signal, signal.shape, "from", destination
             comm.Recv(signal, source=destination)
+            print rank, "YAYYYYY received", signal, "from", destination
+            b_2 = time.time()
+            b6 += b_2 - a_2
         b = time.time()
         communication_time += b - a
 
@@ -267,11 +300,18 @@ def k2_in_parallel(D, node_order, comm, rank, size, u=2):
     p = comm.gather(parents, root=0)
     b = time.time()
     communication_time += b - a
+    b7 += b - a
 
     print rank, " selecting ", selecting_job_time
     print rank, " calculating ", calculation_time
     print rank, " communicating ", communication_time
     print rank, " tracking ", tracking_time
+    print rank, " b1 ", b1
+    print rank, " b2 ", b2
+    print rank, " b3 ", b3
+    print rank, " b4 ", b4
+    print rank, " b5 ", b5
+    print rank, " b6 ", b6
 
     if rank == 0:
     # gather returns a list - converting to a single dictionary

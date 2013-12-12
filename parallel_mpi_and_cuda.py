@@ -9,6 +9,8 @@ import pickle
 
 from mpi4py import MPI
 
+import pycuda.autoinit
+import pycuda.driver as cu
 import pycuda.gpuarray as gpu
 import pycuda.compiler as nvcc
 

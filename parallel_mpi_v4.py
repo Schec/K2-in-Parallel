@@ -6,6 +6,7 @@ import operator
 from mpi4py import MPI
 import sys
 import argparse
+import pickle
 
 
 def vals_of_attributes(D, n):
@@ -115,6 +116,7 @@ def parent_set(i, node_order, attribute_values, df, u=2):
 
 
 def k2_in_parallel(D, node_order, comm, rank, size, u=2):
+
     status = MPI.Status()
     n = D.shape[1]
     assert len(node_order) == n, ("Node order is not correct length."
@@ -127,15 +129,12 @@ def k2_in_parallel(D, node_order, comm, rank, size, u=2):
     df = pd.DataFrame(D)
     parents = {}
 
-    #selecting_job_time = 0
-    #calculation_time = 0
-
     all_i = find_all_jobs(np.arange(n, dtype=np.int32), rank, size)
 
     friends = range(rank + 1, size) + range(rank)
     friend_in_need = np.array([-1], dtype=np.int32)
 
-    # this is the signal we'll send to let friends know that we don't have work
+    # this is the sign to send to friends to let them know we're near done
     done = np.array([-2], dtype=np.int32)
 
     lall = len(all_i)
@@ -145,7 +144,7 @@ def k2_in_parallel(D, node_order, comm, rank, size, u=2):
 
     while lall > 0:
 
-        # this needs to be non-blocking -- no pickle option available
+        # this needs to be non-blocking communication -- no pickle option
         req = comm.Irecv(friend_in_need, source=MPI.ANY_SOURCE)
         if req.Test(status=status) is False:
             req.Cancel()
@@ -163,13 +162,12 @@ def k2_in_parallel(D, node_order, comm, rank, size, u=2):
 
             # send done message if we don't have a lot of work left
             if lall < 4 and friend not in friends_who_know_im_done:
-                comm.Isend(done, dest=friend)
+                comm.Send(done, dest=friend)
                 friends_who_know_im_done.append(friend)
 
             # don't send any work if the friend just sent that he's done
             # send half of the remaining work if there is enough left,
             if lall >= 4 and not friend_in_need == -2:
-
                 # build the message
                 mess = all_i[int(np.ceil(1 / 2 * lall)):lall]
 
@@ -195,13 +193,13 @@ def k2_in_parallel(D, node_order, comm, rank, size, u=2):
             parents[node_order[i]] = parent_set(
                 i, node_order, attribute_values, df, u)
 
-            # update length of work
+            # update lall to see if we should go again
             lall = lall - 1
 
     # send done signals to everybody else
     for f in friends:
         if f not in friends_who_know_im_done:
-            comm.Send(done, dest=f)
+            comm.Isend(done, dest=f)
 
     friends = [bud for bud in friends if bud not in friends_who_are_done]
 
@@ -217,9 +215,9 @@ def k2_in_parallel(D, node_order, comm, rank, size, u=2):
 
         # check to see whether this node sent you a done message
         req = comm.Irecv(signal, source=destination)
-        if req.Test(status=status) is False:
+        statvar = req.Test(status=status)
+        if statvar is False:
             req.Cancel()
-             # if not, send him your rank and hope for work back!
             comm.Send(mess, dest=destination)
             comm.Recv(signal, source=destination)
 
@@ -243,7 +241,7 @@ def k2_in_parallel(D, node_order, comm, rank, size, u=2):
 
 if __name__ == "__main__":
 
-    parser = argparse.ArgumentParser(description='''K2 In Serial:  Calculates
+    parser = argparse.ArgumentParser(description='''K2 In Parallel:  Calculates
          the parent set for each node in your data file and returns a
          dictionary of the form{feature: [parent set]}.''')
     parser.add_argument('-D', nargs='?', default=None, help='''Path to csc file
@@ -270,6 +268,9 @@ if __name__ == "__main__":
     parser.add_argument('-u', nargs='?', type=int, default=2,
         help='''The maximum number of parents per feature.  Default is 2.
                 Must be less than number of features.''')
+    parser.add_argument('--outfile', nargs='?', default=None, help='''The
+         output file where the dictionary of {feature: [parent set]} will be
+         written''')
     args = parser.parse_args()
 
     comm = MPI.COMM_WORLD
@@ -277,6 +278,7 @@ if __name__ == "__main__":
     size = comm.Get_size()
 
     u = args.u
+    outfile = args.outfile
 
     if args.random:
         n = args.n
@@ -290,15 +292,11 @@ if __name__ == "__main__":
         D = comm.bcast(D, root=0)
         node_order = list(range(n))
 
-    elif not args.D == None:
-        #if rank == 0:
-            # "Reading in array D"
+    elif args.D is not None:
         D = np.loadtxt(open(args.D))
-        if args.node_order != None:
+        if args.node_order is not None:
             node_order = args.node_order
         else:
-            #if rank == 0:
-                #print "Determining node order"
             n = np.int32(D.shape[1])
             node_order = list(range(n))
 
@@ -307,14 +305,23 @@ if __name__ == "__main__":
             print "Incorrect usage. Use --help to display help."
         sys.exit()
 
-    #if rank == 0:
-        #print "Calculating Parent sets"
     comm.barrier()
     start = MPI.Wtime()
-    parents = k2_in_parallel(D,node_order,comm,rank,size,u=u)
+    parents = k2_in_parallel(D, node_order, comm, rank, size, u=u)
     comm.barrier()
     end = MPI.Wtime()
+
+    ##### Outputs #####
     if rank == 0:
-        #print "Parallel computing time", end-start
-        #print parents
-        print "V4", n, m, size, end-start
+        print "Parallel computing time", end - start
+
+        if args.outfile is not None:
+            out = open(outfile, 'w')
+            try:
+                pickle.dump(parents, out)
+            except RuntimeError:
+                for key, item in parents.iteritems():
+                    strr = str(key) + ' ' + str(item) + '\n'
+                    f.write(strr)
+        else:
+            print parents

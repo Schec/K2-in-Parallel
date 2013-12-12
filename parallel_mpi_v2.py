@@ -6,6 +6,7 @@ import operator
 from mpi4py import MPI
 import sys
 import argparse
+import pickle
 
 
 def vals_of_attributes(D, n):
@@ -100,7 +101,8 @@ def k2_in_parallel(D, node_order, comm, rank, size, u=2):
     parents = {}
 
     for i in xrange(n):
-        if my_job(i, rank, size) is True:
+        mjob = my_job(i, rank, size)
+        if mjob is True:
             OKToProceed = False
             pi = []
             pred = node_order[0:i]
@@ -140,7 +142,7 @@ def k2_in_parallel(D, node_order, comm, rank, size, u=2):
 
 if __name__ == "__main__":
 
-    parser = argparse.ArgumentParser(description='''K2 In Serial:  Calculates
+    parser = argparse.ArgumentParser(description='''K2 In Parallel:  Calculates
          the parent set for each node in your data file and returns a
          dictionary of the form{feature: [parent set]}.''')
     parser.add_argument('-D', nargs='?', default=None, help='''Path to csc file
@@ -167,6 +169,9 @@ if __name__ == "__main__":
     parser.add_argument('-u', nargs='?', type=int, default=2,
         help='''The maximum number of parents per feature.  Default is 2.
                 Must be less than number of features.''')
+    parser.add_argument('--outfile', nargs='?', default=None, help='''The
+         output file where the dictionary of {feature: [parent set]} will be
+         written''')
     args = parser.parse_args()
 
     comm = MPI.COMM_WORLD
@@ -174,6 +179,7 @@ if __name__ == "__main__":
     size = comm.Get_size()
 
     u = args.u
+    outfile = args.outfile
 
     if args.random:
         n = args.n
@@ -187,15 +193,11 @@ if __name__ == "__main__":
         D = comm.bcast(D, root=0)
         node_order = list(range(n))
 
-    elif not args.D == None:
-        #if rank == 0:
-            # "Reading in array D"
+    elif args.D is not None:
         D = np.loadtxt(open(args.D))
-        if args.node_order != None:
+        if args.node_order is not None:
             node_order = args.node_order
         else:
-            #if rank == 0:
-                #print "Determining node order"
             n = np.int32(D.shape[1])
             node_order = list(range(n))
 
@@ -204,14 +206,23 @@ if __name__ == "__main__":
             print "Incorrect usage. Use --help to display help."
         sys.exit()
 
-    #if rank == 0:
-        #print "Calculating Parent sets"
     comm.barrier()
     start = MPI.Wtime()
-    parents = k2_in_parallel(D,node_order,comm,rank,size,u=u)
+    parents = k2_in_parallel(D, node_order, comm, rank, size, u=u)
     comm.barrier()
     end = MPI.Wtime()
+
+    ##### Outputs #####
     if rank == 0:
-        #print "Parallel computing time", end-start
-        #print parents
-        print "V2", n, m, size, end-start
+        print "Parallel computing time", end - start
+
+        if args.outfile is not None:
+            out = open(outfile, 'w')
+            try:
+                pickle.dump(parents, out)
+            except RuntimeError:
+                for key, item in parents.iteritems():
+                    strr = str(key) + ' ' + str(item) + '\n'
+                    f.write(strr)
+        else:
+            print parents

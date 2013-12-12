@@ -7,7 +7,7 @@ import time
 from mpi4py import MPI
 import sys
 import argparse
-
+import pickle
 
 def vals_of_attributes(D, n):
     output = []
@@ -161,7 +161,7 @@ def k2_in_parallel(D, node_order, comm, rank, size, u=2):
 
 if __name__ == "__main__":
 
-    parser = argparse.ArgumentParser(description='''K2 In Serial:  Calculates
+    parser = argparse.ArgumentParser(description='''K2 In Parallel:  Calculates
          the parent set for each node in your data file and returns a
          dictionary of the form{feature: [parent set]}.''')
     parser.add_argument('-D', nargs='?', default=None, help='''Path to csc file
@@ -188,6 +188,9 @@ if __name__ == "__main__":
     parser.add_argument('-u', nargs='?', type=int, default=2,
         help='''The maximum number of parents per feature.  Default is 2.
                 Must be less than number of features.''')
+    parser.add_argument('--outfile', nargs='?', default=None, help='''The
+         output file where the dictionary of {feature: [parent set]} will be
+         written''')
     args = parser.parse_args()
 
     comm = MPI.COMM_WORLD
@@ -195,6 +198,7 @@ if __name__ == "__main__":
     size = comm.Get_size()
 
     u = args.u
+    outfile = args.outfile
 
     if args.random:
         n = args.n
@@ -227,4 +231,17 @@ if __name__ == "__main__":
     comm.barrier()
     end = MPI.Wtime()
 
-    print end - start
+    ##### Outputs #####
+    if rank == 0:
+        print "Parallel computing time", end - start
+
+        if args.outfile is not None:
+            out = open(outfile, 'w')
+            try:
+                pickle.dump(parents, out)
+            except RuntimeError:
+                for key, item in parents.iteritems():
+                    strr = str(key) + ' ' + str(item) + '\n'
+                    f.write(strr)
+        else:
+            print parents

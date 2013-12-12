@@ -192,6 +192,6 @@ if __name__ == "__main__":
         except RuntimeError:
             for key, item in parents.iteritems():
                 strr = str(key) + ' ' + str(item) + '\n'
-                f.write(strr)
+                out.write(strr)
     else:
         print parents

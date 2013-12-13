@@ -245,7 +245,7 @@ if __name__ == "__main__":
         if rank == 0:
             if args.seed is not None:
                 np.random.seed(args.seed)
-            D = np.random.binomial(1, 0.9, size=(m, n))
+            D = np.random.binomial(1, 0.7, size=(m, n))
         else:
             D = None
         D = comm.bcast(D, root=0)

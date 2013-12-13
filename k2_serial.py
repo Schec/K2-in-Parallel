@@ -163,7 +163,7 @@ if __name__ == "__main__":
         m = args.m
         if args.seed is not None:
             np.random.seed(args.seed)
-        D = np.random.binomial(1, 0.9, size=(m, n))
+        D = np.random.binomial(1, 0.7, size=(m, n))
         node_order = list(range(n))
 
     elif args.D is not None:
